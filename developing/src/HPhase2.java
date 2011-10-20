@@ -19,12 +19,23 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class HPhase2{
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<Text, Text, IntWritable, Text> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
 		
-		public void map(Text key, Text value, Context context) throws IOException, InterruptedException 
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
-			int keyValue = Integer.parseInt(key.toString());
-			context.write(new IntWritable(keyValue), value); 
+                        String[] input = value.toString().split("\t");
+                        //System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
+                        try{
+                             System.out.println(input[0].length() + " $$$ " +input[0].trim());
+                            int column = Integer.parseInt(input[0]);
+                           context.write(new IntWritable(column), new Text(input[1]));
+                        }catch(Exception e){
+                            System.out.println(input[0].trim());
+                        }
+			
+                        for (int i=0; i<input.length; i++){
+                            System.out.println(input[i]);
+                        }
 		}
 
 	}
@@ -67,7 +78,7 @@ public class HPhase2{
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step1");
-		job.setJarByClass(HPhase1.class);
+		job.setJarByClass(HPhase2.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
