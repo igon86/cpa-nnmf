@@ -1,0 +1,214 @@
+
+import java.io.IOException;
+
+import java.util.Iterator;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.RawComparator;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+
+/**
+ * 
+ * @author virgilid
+ */
+public class HPhase1v2 {
+	
+	private static boolean W = false;
+	private static int currentRow;
+
+	/* The output values must be text in order to distinguish the different data types */
+	public static class MyMapper extends Mapper<LongWritable, Text, Text, Text> {
+
+		protected void setup(Context context) throws IOException
+		{
+			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
+
+			/* the number present in the file name is the number of the first stored row vector
+			// Through a static variable we take in account the right row number knowing that the
+			// row vector are read sequentially in the file split 
+			*/
+			
+			if (chunkName.startsWith("W")) /* A row vector must be emitted */
+			{
+				int i,j;
+				
+				W = true;
+				
+				for (i = 0; i < chunkName.length() &&
+					(chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
+				
+				for (j=i; j < chunkName.length() &&
+				 (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
+				
+				try 
+				{
+					String rowNumber = chunkName.substring(i, j);
+					System.out.println("GUARDARE:" + rowNumber);
+					currentRow = new Integer(rowNumber);
+				}
+				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
+			}
+			else if( ! chunkName.startsWith("A")) throw new IOException("File name not correct");
+		}
+		
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException 
+		{
+
+			if (W)
+			{
+				context.write(new Text("" + currentRow +"#W"  ), new Text("W" + value.toString()));
+				currentRow++;
+			} 
+			else  /* The sparse element must be emitted */
+			{
+				SparseElement se = new SparseElement(value);
+				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
+				context.write(new Text("" + se.getRow() + "#a"), new Text("A" + sve.toString())); 
+			}
+		}
+//lower case is usefull for the ordering of the key
+		
+	}
+
+	
+	
+	  /**
+	   * Partition based on the first part of the pair.
+	   */
+	  public static class FirstPartitioner extends Partitioner<Text,Text>{
+	    @Override
+	    public int getPartition(Text key, Text value, int numPartitions) {
+	    	int j;
+	    	String s = key.toString();
+	    	for (j=0; j < s.length() && (s.charAt(j) >= '0' && s.charAt(j) <= '9'); j++);
+	    	int parsed = Integer.parseInt(s.substring(0, j));
+	      return parsed % numPartitions;
+	    }
+	  }
+
+	  /**
+	   * Compare only the first part of the pair, so that reduce is called once
+	   * for each value of the first part.
+	   */
+	  public static class FirstGroupingComparator implements RawComparator<Text> {
+	    
+	    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) 
+	    {
+	    	System.out.println("sono nella compare bytes");
+	    	return WritableComparator.compareBytes(b1, s1, Integer.SIZE/8, 
+	                                             b2, s2, Integer.SIZE/8);
+	    }
+
+	    
+	    public int compare(Text o1, Text o2) 
+	    {
+	    	System.out.println("sono nella compare oggetti");
+	      String s1,s2;
+	      s1 = o1.toString();
+	      s1 = s1.substring(0, s1.indexOf("#"));
+	      s2 = o2.toString();
+	      s2 = s2.substring(0, s2.indexOf("#"));
+	      
+	      return s1.compareTo(s2);
+	    }
+	  }
+	
+	public static class MyReducer extends Reducer<Text, Text, IntWritable, Text> {
+
+		private void scalarProductEmit(Double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException 
+		{
+			if (tmp.getValue() != 0.0) 
+			{
+				Double[] doubleTmp = dValues.clone();
+				for (int j = 0; j < doubleTmp.length; j++)
+				{
+					doubleTmp[j] *= tmp.getValue();
+				}
+
+				MatrixVector mvEmit = new MatrixVector(dValues.length, doubleTmp);
+
+				context.write(new IntWritable(tmp.getCoordinate()), new Text(mvEmit.toString()));
+			}
+		}
+
+		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException 
+		{	
+			/* The array contains the the row vector once the w row vector is read */
+			Double[] dValues = null;
+			
+			Text val;
+			
+/*			String s = key.toString();
+		    s = s.substring(0, s.indexOf("#"));
+		    int row = Integer.parseInt(s);
+	*/		
+			
+			System.out.println("ORA VEDIAMO");
+			for (Text t1:values)
+			{
+				System.out.println(t1.toString());
+			}
+			
+			
+		/*	Iterator<Text> iter = values.iterator();
+			
+			if(iter.hasNext())
+			{
+				val = iter.next();
+				System.out.println(val);
+				System.out.println(val.toString().substring(1));
+			
+				MatrixVector mv = MatrixVector.parseLine(val.toString().substring(1));
+				dValues = mv.getValues();				
+			}
+			else throw new IOException("It shouldn't be never verified");
+			
+			while (iter.hasNext()) 
+			{
+				val = iter.next();
+
+				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString().substring(1));
+				scalarProductEmit(dValues, sve, context);
+			}*/
+		}
+	}
+
+	/**
+	 * @param args
+	 *            the command line arguments
+	 */
+	public static void main(String[] args) throws Exception 
+	{
+		Configuration conf = new Configuration();
+
+		Job job = new Job(conf, "MapRed Step1");
+		job.setJarByClass(HPhase1v2.class);
+		job.setMapperClass(MyMapper.class);
+		job.setReducerClass(MyReducer.class);
+
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
+		
+		job.setPartitionerClass(FirstPartitioner.class);
+		job.setGroupingComparatorClass(FirstGroupingComparator.class);
+		
+		//job.setOutputValueGroupingComparator(Class);
+
+		TextInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+		job.waitForCompletion(true);
+	}
+}
