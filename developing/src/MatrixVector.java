@@ -8,7 +8,7 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class MatrixVector implements WritableComparable<MatrixVector>{
 
-		private int elementsNumber;
+	private int elementsNumber;
         private Double[] value;
 
         public MatrixVector(int element_number, Double[] elements)

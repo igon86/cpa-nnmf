@@ -78,8 +78,8 @@ public class SecondarySort {
      */
     @Override
     public void readFields(DataInput in) throws IOException {
-      first = in.readInt() + Integer.MIN_VALUE;
-      second = in.readInt() + Integer.MIN_VALUE;
+      this.first = in.readInt() + Integer.MIN_VALUE;
+      this.second = in.readInt() + Integer.MIN_VALUE;
     }
     @Override
     public void write(DataOutput out) throws IOException {

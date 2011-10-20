@@ -1,15 +1,16 @@
 
 import java.io.IOException;
-
 import java.util.Iterator;
+
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -98,6 +99,20 @@ public class HPhase1v2 {
 	    }
 	  }
 
+          public static class merda extends Text.Comparator{
+              	    public int compare(Text o1, Text o2)
+	    {
+                System.out.println("sono nella compare oggetti");
+	      String s1,s2;
+	      s1 = o1.toString();
+	      s1 = s1.substring(0, s1.indexOf("#")-1);
+	      s2 = o2.toString();
+	      s2 = s2.substring(0, s2.indexOf("#")-1);
+
+	      return s1.compareTo(s2);
+	    }
+          }
+
 	  /**
 	   * Compare only the first part of the pair, so that reduce is called once
 	   * for each value of the first part.
@@ -106,9 +121,24 @@ public class HPhase1v2 {
 	    
 	    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) 
 	    {
-	    	System.out.println("sono nella compare bytes");
-	    	return WritableComparator.compareBytes(b1, s1, Integer.SIZE/8, 
-	                                             b2, s2, Integer.SIZE/8);
+                DataInputBuffer buffer = new DataInputBuffer();
+                WritableComparable t1 = new Text();
+                WritableComparable t2 = new Text();
+                try {
+                    buffer.reset(b1, s1, l1);
+                    t1.readFields(buffer);
+                    System.out.println("STICAZZI1: "+t1.toString());
+                    buffer.reset(b2, s2, l2);
+                    t2.readFields(buffer);
+                    System.out.println("STICAZZI2: "+t2.toString());
+
+    } catch (IOException e) {
+                    System.out.println("col cazzo che ha funzionato");
+      throw new RuntimeException(e);
+    }
+	    	return compare((Text )t1, (Text) t2);
+               
+                
 	    }
 
 	    
@@ -154,15 +184,15 @@ public class HPhase1v2 {
 		    s = s.substring(0, s.indexOf("#"));
 		    int row = Integer.parseInt(s);
 	*/		
-			
+/*
 			System.out.println("ORA VEDIAMO");
 			for (Text t1:values)
 			{
-				System.out.println(t1.toString());
+				System.out.println(key.toString() +" & "+t1.toString());
 			}
+		*/
 			
-			
-		/*	Iterator<Text> iter = values.iterator();
+			Iterator<Text> iter = values.iterator();
 			
 			if(iter.hasNext())
 			{
@@ -181,7 +211,7 @@ public class HPhase1v2 {
 
 				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString().substring(1));
 				scalarProductEmit(dValues, sve, context);
-			}*/
+			}
 		}
 	}
 

@@ -8,7 +8,7 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class SparseVectorElement implements WritableComparable<SparseVectorElement>{
 
-		private Integer coordinate;
+	private Integer coordinate;
         private Double value;
 
         public SparseVectorElement(int coordinate, double value)
