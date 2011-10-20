@@ -5,9 +5,10 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.*; //Text
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -20,86 +21,87 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
  * @author virgilid
  */
 public class HPhase1 {
+	
+	private static boolean W = false;
+	private static int currentRow;
 
-	// OUTPUT VALUE MUST BE TEXT IN ORDER TO DISTINGUISH THE DIFFERENT DATA
-	// TYPES?
-	public static class MyMapper extends
-			Mapper<LongWritable, Text, IntWritable, Text> {
+	/* The output values must be text in order to distinguish the different data types */
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
 
-		public void map(LongWritable key, Text value, Context context)
-				throws IOException, InterruptedException {
-			String chunkName = ((FileSplit) context.getInputSplit()).getPath()
-					.getName();
+		protected void setup(Context context) throws IOException
+		{
+			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
+			/* the number present in the file name is the number of the first stored row vector
+			// Through a static variable we take in account the right row number knowing that the
+			// row vector are read sequentially in the file split 
+			*/
+			
 			if (chunkName.startsWith("W")) /* A row vector must be emitted */
 			{
-				int i, row;
-				for (i = 0; i < chunkName.length()
-						&& (chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++)
-					;
-
-				try {
-					// the number present in the file name can be the number of
-					// the first stored row vector
-					// through a static variable we can take in account the
-					// right row number knowing that the
-					// row vector are read sequentially in the file split
-					String rowNumber = chunkName.substring(i, i + 1);
+				int i,j;
+				
+				W = true;
+				
+				for (i = 0; i < chunkName.length() &&
+					(chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
+				
+				for (j=i; i < chunkName.length() &&
+				 (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
+				
+				try 
+				{
+					String rowNumber = chunkName.substring(i, j);
 					System.out.println("GUARDARE:" + rowNumber);
-					row = new Integer(rowNumber);
-
-				} catch (NumberFormatException e) {
-					throw new IOException("File name conversion failled");
+					currentRow = new Integer(rowNumber);
 				}
+				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
+			}
+			else if( ! chunkName.startsWith("A")) throw new IOException("File name not correct");
+		}
+		
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException 
+		{
 
-				context.write(new IntWritable(row), new Text("W"
-						+ value.toString())); // TO BE MODIFIED
-
-			} else if (chunkName.startsWith("A")) /*
-												 * The sparse element must be
-												 * emitted
-												 */
+			if (W)
+			{
+				context.write(new IntWritable(currentRow++), new Text("W" + value.toString()));
+			} 
+			else  /* The sparse element must be emitted */
 			{
 				SparseElement se = new SparseElement(value);
-				SparseVectorElement sve = new SparseVectorElement(se
-						.getColumn(), se.getValue());
-				context.write(new IntWritable(se.getRow()), new Text("A"
-						+ sve.toString())); // TO BE MODIFIED
-
-			} else
-				throw new IOException(
-						"The file to be analyzed is not a correct one");
+				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
+				context.write(new IntWritable(se.getRow()), new Text("A" + sve.toString())); 
+			}
 		}
 
 	}
 
-	public static class MyReducer extends
-			Reducer<IntWritable, Text, IntWritable, Text> {
+	public static class MyRawComparator extends Text.Comparator{
+		
+	}
+	
+	public static class MyReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
 
-		private void scalarProductEmit(Double[] dValues,
-				SparseVectorElement tmp, Context context) throws IOException,
-				InterruptedException {
-
-			if (tmp.getValue() != 0.0) {
+		private void scalarProductEmit(Double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException 
+		{
+			if (tmp.getValue() != 0.0) 
+			{
 				Double[] doubleTmp = dValues.clone();
-				for (int j = 0; j < doubleTmp.length; j++) {
+				for (int j = 0; j < doubleTmp.length; j++)
+				{
 					doubleTmp[j] *= tmp.getValue();
 				}
 
-				MatrixVector mvEmit = new MatrixVector(dValues.length,
-						doubleTmp);
+				MatrixVector mvEmit = new MatrixVector(dValues.length, doubleTmp);
 
-				context.write(new IntWritable(tmp.getCoordinate()), new Text(
-						mvEmit.toString()));
+				context.write(new IntWritable(tmp.getCoordinate()), new Text(mvEmit.toString()));
 			}
 		}
 
-		public void reduce(IntWritable key, Iterable<Text> values,
-				Context context) throws IOException, InterruptedException {
-			/*
-			 * the array contains the the row vector once the w row vector is
-			 * readed
-			 */
+		public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException 
+		{	
+			/* The array contains the the row vector once the w row vector is read */
 			Double[] dValues = null;
 
 			/* The array list contains the sparse element on the key-th row */
@@ -107,24 +109,26 @@ public class HPhase1 {
 
 			Text val;
 			Iterator<Text> iter = values.iterator();
-			while (iter.hasNext()) {
+			while (iter.hasNext()) 
+			{
 				val = iter.next();
 
-				if (val.charAt(0) == 'A') // / MULTIPLE A ELEMENTS VALUE ARE NOT
-											// TAKEN IN ACCOUNT
+				if (val.charAt(0) == 'A') // / MULTIPLE A ELEMENTS VALUE ARE NOT TAKEN IN ACCOUNT
 				{
-					SparseVectorElement sve = SparseVectorElement.parseLine(val
-							.toString().substring(1));
+					SparseVectorElement sve = SparseVectorElement.parseLine(val.toString().substring(1));
 					arrList.add(sve);
-				} else if (val.charAt(0) == 'W') {
-					MatrixVector mv = MatrixVector.parseLine(val.toString()
-							.substring(1));
+				} 
+				else if (val.charAt(0) == 'W') 
+				{
+					MatrixVector mv = MatrixVector.parseLine(val.toString().substring(1));
 					dValues = mv.getValues();
 
 					System.out.println("Vettore aquisito");
 					
-					for (SparseVectorElement tmp : arrList)
+					for (SparseVectorElement tmp : arrList) 
+					{
 						scalarProductEmit(dValues, tmp, context);
+					}
 
 					/* Exit from the iterator loop */
 					break;
@@ -132,19 +136,19 @@ public class HPhase1 {
 			}
 
 			if (dValues == null)
-				throw new IOException("Tne W's row vector is not received");			
+				throw new IOException("The W's row vector is not received");			
 
 			System.out.println("QUI CI ARRIVO");
-			while (iter.hasNext()) {
+			while (iter.hasNext()) 
+			{
 				val = iter.next();
 
-				if (val.charAt(0) == 'A') // / MULTIPLE A ELEMENTS VALUE ARE
-					// NOT TAKEN IN ACCOUNT
+				if (val.charAt(0) == 'A') // MULTIPLE A ELEMENTS VALUE ARE NOT TAKEN IN ACCOUNT
 				{
-					SparseVectorElement sve = SparseVectorElement
-					.parseLine(val.toString().substring(1));
+					SparseVectorElement sve = SparseVectorElement.parseLine(val.toString().substring(1));
 					scalarProductEmit(dValues, sve, context);
-				} else if (val.charAt(0) == 'W')
+				} 
+				else if (val.charAt(0) == 'W')
 					throw new IOException("There is a double emission of the W's row vector");
 
 			}
@@ -155,8 +159,8 @@ public class HPhase1 {
 	 * @param args
 	 *            the command line arguments
 	 */
-	public static void main(String[] args) throws Exception {
-
+	public static void main(String[] args) throws Exception 
+	{
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step1");
@@ -166,6 +170,8 @@ public class HPhase1 {
 
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(Text.class);
+				
+		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
