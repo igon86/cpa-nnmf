@@ -163,7 +163,7 @@ public class SecondarySort {
    * as ((left, right), right).
    */
   public static class MapClass 
-         extends Mapper<LongWritable, Text, IntPair, IntWritable> {
+         extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
     
     private final IntPair key = new IntPair();
     private final IntWritable value = new IntWritable();
@@ -181,7 +181,7 @@ public class SecondarySort {
         }
         key.set(left, right);
         value.set(right);
-        context.write(key, value);
+        context.write(new IntWritable(key.first), value);
       }
     }
   }
@@ -190,18 +190,18 @@ public class SecondarySort {
    * A reducer class that just emits the sum of the input values.
    */
   public static class Reduce 
-         extends Reducer<IntPair, IntWritable, Text, IntWritable> {
+         extends Reducer<IntWritable, IntWritable, Text, IntWritable> {
     private static final Text SEPARATOR = 
-      new Text("------------------------------------------------");
+      new Text("----------$-------$-----------------------------");
     private final Text first = new Text();
     
     @Override
-    public void reduce(IntPair key, Iterable<IntWritable> values,
+    public void reduce(IntWritable key, Iterable<IntWritable> values,
                        Context context
                        ) throws IOException, InterruptedException {
       context.write(SEPARATOR, null);
-      first.set(Integer.toString(key.getFirst()));
-      System.out.println("questa e' la chiave "+key.first +"-"+ key.second);
+      //first.set(Integer.toString(key.getFirst()));
+      //System.out.println("questa e' la chiave "+key.first +"-"+ key.second);
       for(IntWritable value: values) {
         context.write(first, value);
       }
@@ -219,7 +219,7 @@ public class SecondarySort {
     job.setJarByClass(SecondarySort.class);
     job.setMapperClass(MapClass.class);
     job.setReducerClass(Reduce.class);
-
+    job.setNumReduceTasks(0);
     // group and partition by the first int in the pair
     job.setPartitionerClass(FirstPartitioner.class);
     job.setGroupingComparatorClass(FirstGroupingComparator.class);

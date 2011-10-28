@@ -36,9 +36,9 @@ public class HPhase1v2 {
 		{
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
-			/* the number present in the file name is the number of the first stored row vector
-			// Through a static variable we take in account the right row number knowing that the
-			// row vector are read sequentially in the file split 
+			/*  the number present in the file name is the number of the first stored row vector
+                            Through a static variable we take into account the right row number knowing that the
+                            row vector are read sequentially in the file split
 			*/
 			
 			if (chunkName.startsWith("W")) /* A row vector must be emitted */
@@ -69,14 +69,14 @@ public class HPhase1v2 {
 
 			if (W)
 			{
-				context.write(new Text("" + currentRow +"#W"  ), new Text("W" + value.toString()));
+				context.write(new Text("" + currentRow +"W"  ), new Text(value.toString()));
 				currentRow++;
 			} 
 			else  /* The sparse element must be emitted */
 			{
 				SparseElement se = new SparseElement(value);
 				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-				context.write(new Text("" + se.getRow() + "#a"), new Text("A" + sve.toString())); 
+				context.write(new Text("" + se.getRow() + "a"), new Text(sve.toString())); 
 			}
 		}
 //lower case is usefull for the ordering of the key
@@ -96,20 +96,6 @@ public class HPhase1v2 {
 	    	for (j=0; j < s.length() && (s.charAt(j) >= '0' && s.charAt(j) <= '9'); j++);
 	    	int parsed = Integer.parseInt(s.substring(0, j));
 	      return parsed % numPartitions;
-	    }
-	  }
-
-          public static class merda extends Text.Comparator{
-              	    public int compare(Text o1, Text o2)
-	    {
-                System.out.println("sono nella compare oggetti");
-	      String s1,s2;
-	      s1 = o1.toString();
-	      s1 = s1.substring(0, s1.indexOf("#")-1);
-	      s2 = o2.toString();
-	      s2 = s2.substring(0, s2.indexOf("#")-1);
-
-	      return s1.compareTo(s2);
 	    }
           }
 
@@ -132,10 +118,10 @@ public class HPhase1v2 {
                     t2.readFields(buffer);
                     System.out.println("STICAZZI2: "+t2.toString());
 
-    } catch (IOException e) {
+                } catch (IOException e) {
                     System.out.println("col cazzo che ha funzionato");
-      throw new RuntimeException(e);
-    }
+                    throw new RuntimeException(e);
+                }
 	    	return compare((Text )t1, (Text) t2);
                
                 
@@ -144,13 +130,11 @@ public class HPhase1v2 {
 	    
 	    public int compare(Text o1, Text o2) 
 	    {
-	    	System.out.println("sono nella compare oggetti");
+	    
 	      String s1,s2;
-	      s1 = o1.toString();
-	      s1 = s1.substring(0, s1.indexOf("#"));
-	      s2 = o2.toString();
-	      s2 = s2.substring(0, s2.indexOf("#"));
-	      
+	      s1 = o1.toString().substring(0, o1.getLength()-1);
+              s2 = o2.toString().substring(0, o2.getLength()-1);
+              System.out.println("sono nella compare oggetti: "+s1+" VS "+s2);
 	      return s1.compareTo(s2);
 	    }
 	  }
@@ -174,33 +158,21 @@ public class HPhase1v2 {
 		}
 
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException 
-		{	
+		{
+                        System.out.println("REDUCE KEY:" +key);
 			/* The array contains the the row vector once the w row vector is read */
 			Double[] dValues = null;
 			
 			Text val;
-			
-/*			String s = key.toString();
-		    s = s.substring(0, s.indexOf("#"));
-		    int row = Integer.parseInt(s);
-	*/		
-/*
-			System.out.println("ORA VEDIAMO");
-			for (Text t1:values)
-			{
-				System.out.println(key.toString() +" & "+t1.toString());
-			}
-		*/
 			
 			Iterator<Text> iter = values.iterator();
 			
 			if(iter.hasNext())
 			{
 				val = iter.next();
-				System.out.println(val);
-				System.out.println(val.toString().substring(1));
+				System.out.println("VALUE:"+val);
 			
-				MatrixVector mv = MatrixVector.parseLine(val.toString().substring(1));
+				MatrixVector mv = MatrixVector.parseLine(val.toString());
 				dValues = mv.getValues();				
 			}
 			else throw new IOException("It shouldn't be never verified");
@@ -209,7 +181,7 @@ public class HPhase1v2 {
 			{
 				val = iter.next();
 
-				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString().substring(1));
+				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString());
 				scalarProductEmit(dValues, sve, context);
 			}
 		}
@@ -227,6 +199,7 @@ public class HPhase1v2 {
 		job.setJarByClass(HPhase1v2.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
+                //job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);

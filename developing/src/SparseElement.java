@@ -47,7 +47,7 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e) 
         	{
-        		System.out.println("Input Error reading SparseElement Value" + s);
+        		System.out.println("Error parseLine of SparseElement:" + s);
         		se.rowCoordinate = 0;
         		se.columnCoordinate = 0;
         		se.value = 0.0;
