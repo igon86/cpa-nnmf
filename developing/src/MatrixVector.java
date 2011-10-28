@@ -8,7 +8,7 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class MatrixVector implements WritableComparable<MatrixVector>{
 
-	private int elementsNumber;
+		private int elementsNumber;
         private Double[] value;
 
         public MatrixVector(int element_number, Double[] elements)
@@ -93,12 +93,12 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
 		{
 			if(this.elementsNumber - o.elementsNumber != 0)
 				return this.elementsNumber - o.elementsNumber;
-			
+			/*
 			int i;
 			for(i=0; i<this.elementsNumber; i++)
 				if(this.value[i] - o.value[i] != 0)
 					return (int) (this.value[i] - o.value[i]);
-			
+			*/
 			return 0;
 		}
 		
