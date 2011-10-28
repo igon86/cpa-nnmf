@@ -205,7 +205,7 @@ public class TestPoly {
 //lower case is usefull for the ordering of the key
     }
 
-    public static class MyReducer extends Reducer<LongWritable, IntArrayWritable, Text, IntWritable> {
+    public static class MyReducer extends Reducer<LongWritable, IntArrayWritable, Text, IntArrayWritable> {
 
         public void reduce(LongWritable key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
 
@@ -218,7 +218,7 @@ public class TestPoly {
                     sum+=x.get();
                 }
 
-                context.write(new Text(key.toString()),new IntWritable(sum));
+                context.write(new Text(key.toString()),i);
             }
         }
     }
