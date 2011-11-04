@@ -105,7 +105,7 @@ public class HPhase3 {
 			
 			int row = val.getRowNumber();
 			int column = val.getColumnNumber();
-			
+			System.out.println("GUARDAMIIIIIII : "+row + " " +column );
 			while (iter.hasNext()) 
 			{
 				val = iter.next();
@@ -132,7 +132,7 @@ public class HPhase3 {
 		job.setJarByClass(HPhase3.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
-
+                //job.setNumReduceTasks(0);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
 		
