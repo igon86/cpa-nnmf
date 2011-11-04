@@ -96,6 +96,15 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
 			
 			return new MatrixMatrix(size, size, tmp);
         }
+
+        public double internalProduct(MatrixVector v){
+            if (this.elementsNumber != v.elementsNumber) return 0;
+            int ret = 0;
+            for (int i =0;i<this.elementsNumber;i++){
+                ret += (this.value[i] * v.value[i]);
+            }
+            return ret;
+        }
         
         
         
