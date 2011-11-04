@@ -43,9 +43,17 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
             System.out.println("MatrixMatrix: stringa partizionata");
 
             String[] tmp = splitted[0].split("#");
-            mv.rowNumber = new Integer(tmp[0]);
-            mv.columnNumber = new Integer(tmp[1]);
+            System.out.println("parsing a #");
 
+            System.out.println("Conversione 1:<"+ tmp[0] +">");
+            mv.rowNumber = Integer.parseInt(tmp[0]);
+
+            System.out.println("Conversione 2:<"+ tmp[1] +">");
+            mv.columnNumber = Integer.parseInt(tmp[1]);
+            
+            System.out.println("Sono nella parse Line e non so perche");
+            
+/*
             mv.value = new Double[mv.rowNumber][mv.columnNumber];
             System.out.println("Dimensione presa " + splitted.length);
 
@@ -60,12 +68,15 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
                 }
                 System.out.println("Valori del vettore presi");
             }
+            */
         } catch (NumberFormatException e) {
-            System.out.println("Input Error reading MatrixMatrix Value" + s);
+            System.out.println("Input Error reading MatrixMatrix Value <" + s+">");
+            System.out.println(e.toString());
             mv.columnNumber = 0;
             mv.rowNumber = 0;
             mv.value = null;
         }
+        
     }
 
     public int getRowNumber() {
@@ -82,13 +93,22 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 
     @Override
     public void readFields(DataInput arg0) throws IOException {
-        String tmp = arg0.readLine();
-        parseLine(tmp);
+    	this.rowNumber = arg0.readInt();
+    	this.columnNumber = arg0.readInt();
+    	this.columnNumber = arg0.readInt();
+        //String tmp = arg0.readLine();
+        //parseLine(tmp);
     }
 
     @Override
     public void write(DataOutput arg0) throws IOException {
-        arg0.writeBytes(this.toString());
+        
+    	System.out.println("Sono nella write obj" + this.toString());
+    	arg0.writeInt(7);
+    	arg0.writeInt(8);
+    	arg0.writeInt(12);
+
+    	//arg0.writeChars(this.toString());
     }
 
     @Override
@@ -116,7 +136,9 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 
         stringBuilder.append("#" + this.columnNumber);
 
-        stringBuilder.append('\t');
+        //stringBuilder.append('\t');
+        
+        /*
         for (int i = 0; i < this.rowNumber; i++) {
             stringBuilder.append(this.value[i][0]);
             for (int j = 1; j < this.columnNumber; j++) {
@@ -126,8 +148,11 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
             if (i < this.rowNumber - 1) {
                 stringBuilder.append('\t');
             }
-        }
+        }*/
         stringBuilder.append('\n');
+        
+        System.out.println("Sono nella printf " + stringBuilder.toString());
+        
         return stringBuilder.toString();
     }
 
@@ -141,35 +166,13 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
      */
     public MatrixMatrix sum(MatrixMatrix m){
         if(this.rowNumber != m.rowNumber || this.columnNumber !=  m.columnNumber) return null;
-        MatrixMatrix ret = new MatrixMatrix(this.rowNumber, this.columnNumber, this.value.clone());
+        MatrixMatrix ret = new MatrixMatrix(this.rowNumber, this.columnNumber, value);
         for(int i = 0 ;i<this.rowNumber;i++){
             for (int j = 0; i<this.columnNumber;j++){
                 ret.value[i][j] += m.value[i][j];
             }
         }
         return ret;
-    }
-    
-    public MatrixVector getRowVector (int index){
-        return this.value[index];
-    }
-
-    public MatrixVector vectorMul (MatrixVector v){
-        MatrixVector ret = new MatrixVector(this.rowNumber,new Double[rowNumber]);
-        for (int i =0;i<this.rowNumber;i++){
-            ret.value[i] = this.getRowVector(i).internalProduct(v);
-        }
-        return ret;
-    }
-
-    public void inPlacePointMul(MatrixMatrix m) throws IOException{
-        if(this.rowNumber != m.rowNumber || this.columnNumber !=  m.columnNumber)
-            throw new IOException();
-        for (int i =0;i<this.rowNumber;i++){
-            for (int j=0; j<this.columnNumber;j++){
-                this.value[i][j] *= m.value[i][j];
-            }
-        }
     }
 
     public void inPlacePointDiv(MatrixMatrix m) throws IOException{
