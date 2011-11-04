@@ -48,7 +48,7 @@ public class HPhase4 {
                 }
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
-                WW.parseLine(sb.toString());
+                WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
             }
 
             // GUARDO DOVE SONO NELLA MATRICE H
@@ -73,7 +73,7 @@ public class HPhase4 {
         }
 
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            MatrixVector mv = MatrixVector.parseLine(value);
+            MatrixVector mv = new MatrixVector(value);
             Context.write(new IntWritable(currentColumn++),WW.multiply(mv));
 
         }
