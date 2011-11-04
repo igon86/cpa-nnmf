@@ -1,19 +1,13 @@
-
-import java.io.IOException;
 import java.util.Iterator;
-
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -25,8 +19,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
  * @author virgilid
  */
 public class HPhase3 {
-	
-	private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixMatrix> {
@@ -40,25 +32,10 @@ public class HPhase3 {
 			// row vector are read sequentially in the file split 
 			*/
 			
-			if (chunkName.startsWith("W")) /* A row vector must be emitted */
+			if (!chunkName.startsWith("W"))
 			{
-				int i,j;
-								
-				for (i = 0; i < chunkName.length() &&
-					(chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
-				
-				for (j=i; j < chunkName.length() &&
-				 (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
-				
-				try 
-				{
-					String rowNumber = chunkName.substring(i, j);
-					System.out.println("GUARDARE:" + rowNumber);
-					currentRow = new Integer(rowNumber);
-				}
-				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
+				throw new IOException("File name is not correct");
 			}
-			else throw new IOException("File name not correct");
 		}
 		
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException 
@@ -66,20 +43,11 @@ public class HPhase3 {
 
 			MatrixVector mv = new MatrixVector(value);
 			
-			int size = mv.getNumberOfElement();
-			Double[][] tmp = new Double[size][size];
-			Double[] vect = mv.getValues();
+			MatrixMatrix result = mv.externalProduct(mv);
 			
-			for(int i=0; i<size; i++)
-			{
-				for(int j=0; j<size; j++)
-				{
-					tmp[i][j] = vect[i] * vect[j];
-				}
-			}	
-			
-			
-			context.write(new IntWritable(0), new MatrixMatrix(size, size, tmp));
+			//System.out.println("External Prod = "+result);
+						
+			context.write(new IntWritable(1), result);
 	
 		}
 		
@@ -90,33 +58,25 @@ public class HPhase3 {
 
 		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException 
 		{	
-			Double[][] result,tmp;
-			
+			MatrixMatrix result;
 			
 			Iterator<MatrixMatrix> iter = values.iterator();
 			MatrixMatrix val;
 			
 			if(iter.hasNext())
 			{
-				val = iter.next();
-				result = val.getValues();				
+				result = iter.next();				
 			}
 			else throw new IOException("It shouldn't be never verified");
 			
-			int row = val.getRowNumber();
-			int column = val.getColumnNumber();
-			System.out.println("GUARDAMIIIIIII : "+row + " " +column );
+			
 			while (iter.hasNext()) 
 			{
 				val = iter.next();
-				tmp = val.getValues();
-				
-				for(int i=0; i<row; i++)
-					for(int j=0; j< column; j++)
-						result[i][j] += tmp[i][j]; 
+				result = result.sum(val);
 			}
 			
-			context.write(new IntWritable(0), new MatrixMatrix(row,column,result));
+			context.write(new IntWritable(0), result);
 		}
 	}
 
@@ -132,11 +92,15 @@ public class HPhase3 {
 		job.setJarByClass(HPhase3.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
-                //job.setNumReduceTasks(0);
+
+		job.setNumReduceTasks(0);
+		
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
 		
 		TextInputFormat.addInputPath(job, new Path(args[0]));
+		//TextOutputFormat.setOutputPath(job, new Path(args[1]));
+		
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
 		job.waitForCompletion(true);
