@@ -161,4 +161,24 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
         }
         return ret;
     }
+
+    public void inPlacePointMul(MatrixMatrix m) throws IOException{
+        if(this.rowNumber != m.rowNumber || this.columnNumber !=  m.columnNumber)
+            throw new IOException();
+        for (int i =0;i<this.rowNumber;i++){
+            for (int j=0; j<this.columnNumber;j++){
+                this.value[i][j] *= m.value[i][j];
+            }
+        }
+    }
+
+    public void inPlacePointDiv(MatrixMatrix m) throws IOException{
+        if(this.rowNumber != m.rowNumber || this.columnNumber !=  m.columnNumber)
+            throw new IOException();
+        for (int i =0;i<this.rowNumber;i++){
+            for (int j=0; j<this.columnNumber;j++){
+                this.value[i][j] /= m.value[i][j];
+            }
+        }
+    }
 }
