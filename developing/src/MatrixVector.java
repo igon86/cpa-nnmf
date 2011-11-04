@@ -75,6 +75,30 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
             return this.value;
         }
         
+        
+        
+        public MatrixMatrix externalProduct(MatrixVector v) // Tensor Product
+        {
+        	int size = this.getNumberOfElement();
+        	if(this.getNumberOfElement() != v.getNumberOfElement()) return null;
+        	
+    		Double[][] tmp = new Double[size][size];
+			Double[] vect1 = this.getValues();
+			Double[] vect2 = v.getValues();
+			
+			for(int i=0; i<size; i++)
+			{
+				for(int j=0; j<size; j++)
+				{
+					tmp[i][j] = vect1[i] * vect2[j];
+				}
+			}	
+			
+			return new MatrixMatrix(size, size, tmp);
+        }
+        
+        
+        
         @Override
 		public void readFields(DataInput arg0) throws IOException 
 		{
