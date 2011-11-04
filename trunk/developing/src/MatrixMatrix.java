@@ -141,11 +141,23 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
      */
     public MatrixMatrix sum(MatrixMatrix m){
         if(this.rowNumber != m.rowNumber || this.columnNumber !=  m.columnNumber) return null;
-        MatrixMatrix ret = new MatrixMatrix(this.rowNumber, this.columnNumber, value);
+        MatrixMatrix ret = new MatrixMatrix(this.rowNumber, this.columnNumber, this.value.clone());
         for(int i = 0 ;i<this.rowNumber;i++){
             for (int j = 0; i<this.columnNumber;j++){
                 ret.value[i][j] += m.value[i][j];
             }
+        }
+        return ret;
+    }
+    
+    public MatrixVector getRowVector (int index){
+        return this.value[index];
+    }
+
+    public MatrixVector vectorMul (MatrixVector v){
+        MatrixVector ret = new MatrixVector(this.rowNumber,new Double[rowNumber]);
+        for (int i =0;i<this.rowNumber;i++){
+            ret.value[i] = this.getRowVector(i).internalProduct(v);
         }
         return ret;
     }
