@@ -52,24 +52,21 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 	    System.out.println("Conversione 2:<" + tmp[1] + ">");
 	    mv.columnNumber = Integer.parseInt(tmp[1]);
 
-	    System.out.println("Sono nella parse Line e non so perche");
-
-	    /*
-	    mv.value = new Double[mv.rowNumber][mv.columnNumber];
+	    mv.value = new double[mv.rowNumber][mv.columnNumber];
 	    System.out.println("Dimensione presa " + splitted.length);
 
 	    for (int row = 1; row < splitted.length && row - 1 < mv.rowNumber; row++) {
-	    System.out.println("SPLITTED ROW " + row + " " + splitted[row]);
-	    tmp = splitted[row].split("#");
-	    System.out.println("row partitioned in " + tmp.length + " values");
-	    for (int i = 0; i < mv.columnNumber && i <= splitted.length; i++) {
-	    System.out.println("row " + i + "^ value = <" + tmp[i] + ">");
-	    mv.value[row - 1][i] = new Double(tmp[i]);
-	    System.out.println("Ho acquisito il " + i + "-esimo parametro");
+		System.out.println("SPLITTED ROW " + row + " " + splitted[row]);
+		tmp = splitted[row].split("#");
+		System.out.println("row partitioned in " + tmp.length + " values");
+		for (int i = 0; i < mv.columnNumber && i <= splitted.length; i++) {
+		    System.out.println("row " + i + "^ value = <" + tmp[i] + ">");
+		    mv.value[row - 1][i] = new Double(tmp[i]);
+		    System.out.println("Ho acquisito il " + i + "-esimo parametro");
+		}
+		System.out.println("MATRIXMATRIX: PARSELINE TERMINATA CON SUCCESSO");
 	    }
-	    System.out.println("Valori del vettore presi");
-	    }
-	     */
+
 	} catch (NumberFormatException e) {
 	    System.out.println("Input Error reading MatrixMatrix Value <" + s + ">");
 	    System.out.println(e.toString());
