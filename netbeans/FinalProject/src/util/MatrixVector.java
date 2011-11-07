@@ -85,7 +85,7 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
         	int size = this.getNumberOfElement();
         	if(this.getNumberOfElement() != v.getNumberOfElement()) return null;
 
-    		double[][] tmp = new double[size][size];
+			double[][] tmp = new double[size][size];
 			double[] vect1 = this.getValues();
 			double[] vect2 = v.getValues();
 
