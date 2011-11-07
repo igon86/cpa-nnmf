@@ -40,7 +40,7 @@ public class HPhase1 {
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 		protected void setup(Context context) throws IOException
-		{
+                {
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
 			/*  the number present in the file name is the number of the first stored row vector
@@ -148,11 +148,11 @@ public class HPhase1 {
 
 	public static class MyReducer extends Reducer<Text, Text, IntWritable, Text> {
 
-		private void scalarProductEmit(Double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException
+		private void scalarProductEmit(double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException
 		{
 			if (tmp.getValue() != 0.0)
 			{
-				Double[] doubleTmp = dValues.clone();
+				double[] doubleTmp = dValues.clone();
 				for (int j = 0; j < doubleTmp.length; j++)
 				{
 					doubleTmp[j] *= tmp.getValue();
@@ -168,7 +168,7 @@ public class HPhase1 {
 		{
                         System.out.println("REDUCE KEY:" +key);
 			/* The array contains the the row vector once the w row vector is read */
-			Double[] dValues = null;
+			double[] dValues = null;
 
 			Text val;
 
