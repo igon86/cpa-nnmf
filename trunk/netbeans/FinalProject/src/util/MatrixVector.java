@@ -103,11 +103,22 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
         public double internalProduct(MatrixVector v){
             if (this.elementsNumber != v.elementsNumber) return 0;
             int ret = 0;
-            for (int i =0;i<this.elementsNumber;i++){
+            for (int i =0; i<this.elementsNumber; i++){
                 ret += (this.value[i] * v.value[i]);
             }
             return ret;
         }
+
+		public MatrixVector ScalarProduct(double value)
+		{
+			double[] doubleTmp = this.value.clone();
+			
+			for (int i =0; i<this.elementsNumber; i++){
+                doubleTmp[i] = doubleTmp[i] * value;
+            }
+
+			return new MatrixVector(this.getNumberOfElement(), doubleTmp);
+		}
 
 
 
