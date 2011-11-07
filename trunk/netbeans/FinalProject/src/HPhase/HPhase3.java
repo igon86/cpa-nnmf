@@ -38,7 +38,7 @@ public class HPhase3 {
 
 			if (!chunkName.startsWith("W"))
 			{
-				throw new IOException("File name is not correct");
+				throw new IOException("File name is not correct: "+chunkName);
 			}
 		}
 
@@ -49,9 +49,9 @@ public class HPhase3 {
 
 			MatrixMatrix result = mv.externalProduct(mv);
 
-			//System.out.println("External Prod = "+result);
+			System.out.println("External Prod = "+result.toString());
 
-			context.write(new IntWritable(1), result);
+			context.write(new IntWritable(0), result);
 
 		}
 
@@ -69,7 +69,9 @@ public class HPhase3 {
 
 			if(iter.hasNext())
 			{
-				result = iter.next();
+				val = iter.next();
+				result = new MatrixMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
+				System.out.println("REDUCE: ho ricevuto: "+result.toString());
 			}
 			else throw new IOException("It shouldn't be never verified");
 
@@ -77,7 +79,11 @@ public class HPhase3 {
 			while (iter.hasNext())
 			{
 				val = iter.next();
-				result = result.sum(val);
+				System.out.println("REDUCE: ho ricevuto: "+val.toString());
+				if (!result.inPlaceSum(val)){
+				    System.out.println("ERRORE nella somma di matrici");
+				    throw new IOException("ERRORE nella somma di matrici");
+				}
 			}
 
 			context.write(new IntWritable(0), result);
@@ -97,7 +103,7 @@ public class HPhase3 {
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
-		job.setNumReduceTasks(0);
+		//job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
