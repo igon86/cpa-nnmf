@@ -27,6 +27,7 @@ public class HPhase3 {
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixMatrix> {
 
+		@Override
 		protected void setup(Context context) throws IOException
 		{
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
@@ -42,6 +43,7 @@ public class HPhase3 {
 			}
 		}
 
+		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 
@@ -60,6 +62,7 @@ public class HPhase3 {
 
 	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, IntWritable, MatrixMatrix> {
 
+		@Override
 		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
 		{
 			MatrixMatrix result;

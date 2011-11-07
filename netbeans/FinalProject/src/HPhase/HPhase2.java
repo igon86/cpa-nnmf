@@ -1,7 +1,4 @@
-
-
 package HPhase;
-
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -27,21 +24,21 @@ public class HPhase2{
 
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
-                        String[] input = value.toString().split("\t");
-                        //System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
-                        try{
-                             System.out.println(input[0].length() + " $$$ " +input[0].trim());
-                            int column = Integer.parseInt(input[0]);
-                           context.write(new IntWritable(column), new Text(input[1]));
-                        }catch(Exception e){
-                            System.out.println(input[0].trim());
-                        }
+			String[] input = value.toString().split("\t");
+			//System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
+			try {
+				System.out.println(input[0].length() + " $$$ " + input[0].trim());
+				int column = Integer.parseInt(input[0]);
+				context.write(new IntWritable(column), new Text(input[1]));
+			}
+			catch (Exception e) {
+				System.out.println(input[0].trim());
+			}
 
-                        for (int i=0; i<input.length; i++){
-                            System.out.println(input[i]);
-                        }
+			for (int i = 0; i < input.length; i++) {
+				System.out.println(input[i]);
+			}
 		}
-
 	}
 
 	public static class MyReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
@@ -70,7 +67,8 @@ public class HPhase2{
 			}
 
 			MatrixVector result = new MatrixVector(dResults.length, dResults);
-			context.write(key, new Text(result.toString()));			}
+			context.write(key, new Text(result.toString()));
+		}
 	}
 
 	/**

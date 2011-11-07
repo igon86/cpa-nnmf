@@ -35,6 +35,7 @@ public class HPhase1 {
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, Text> {
 
+		@Override
 		protected void setup(Context context) throws IOException
                 {
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
@@ -67,6 +68,7 @@ public class HPhase1 {
 			else if( ! chunkName.startsWith("A")) throw new IOException("File name not correct");
 		}
 
+		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 
@@ -108,6 +110,7 @@ public class HPhase1 {
 	   */
 	  public static class FirstGroupingComparator implements RawComparator<Text> {
 
+		@Override
 	    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)
 	    {
                 DataInputBuffer buffer = new DataInputBuffer();
@@ -131,6 +134,7 @@ public class HPhase1 {
 	    }
 
 
+		@Override
 	    public int compare(Text o1, Text o2)
 	    {
 
@@ -146,25 +150,16 @@ public class HPhase1 {
 
 		private void scalarProductEmit(double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException
 		{
-			if (tmp.getValue() != 0.0)
-			{
-				double[] doubleTmp = dValues.clone();
-				for (int j = 0; j < doubleTmp.length; j++)
-				{
-					doubleTmp[j] *= tmp.getValue();
-				}
 
-				MatrixVector mvEmit = new MatrixVector(dValues.length, doubleTmp);
-
-				context.write(new IntWritable(tmp.getCoordinate()), new Text(mvEmit.toString()));
-			}
 		}
 
+		@Override
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 		{
                         System.out.println("REDUCE KEY:" +key);
 			/* The array contains the the row vector once the w row vector is read */
-			double[] dValues = null;
+			//double[] dValues = null;
+			MatrixVector mv;
 
 			Text val;
 
@@ -175,8 +170,8 @@ public class HPhase1 {
 				val = iter.next();
 				System.out.println("VALUE:"+val);
 
-				MatrixVector mv = MatrixVector.parseLine(val.toString());
-				dValues = mv.getValues();
+				mv = MatrixVector.parseLine(val.toString());
+				//dValues = mv.getValues();
 			}
 			else throw new IOException("It shouldn't be never verified");
 
@@ -185,7 +180,12 @@ public class HPhase1 {
 				val = iter.next();
 
 				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString());
-				scalarProductEmit(dValues, sve, context);
+
+				if (sve.getValue() != 0.0)
+				{
+					MatrixVector mvEmit =  mv.ScalarProduct(sve.getValue());
+					context.write(new IntWritable(sve.getCoordinate()), new Text(mvEmit.toString()));
+				}
 			}
 		}
 	}
