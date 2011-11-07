@@ -125,14 +125,20 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
         @Override
 		public void readFields(DataInput arg0) throws IOException
 		{
-        	String tmp = arg0.readLine();
-        	parseLine(tmp);
+		    this.elementsNumber = arg0.readInt();
+		    this.value = new double[this.elementsNumber];
+		    for (int i =0; i < this.elementsNumber; i ++){
+			this.value[i] = arg0.readDouble();
+		    }
 		}
 
 		@Override
 		public void write(DataOutput arg0) throws IOException
 		{
-			arg0.writeBytes(this.toString());
+			arg0.writeInt(this.elementsNumber);
+			for (int i =0; i < this.elementsNumber; i ++){
+			arg0.writeDouble(this.value[i]);
+		    }
 		}
 
 		@Override
@@ -151,6 +157,7 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
 
 		public String toString()
 		{
+			System.out.println("SONO NELLA TOSTRING DI MATRIXVECTOR");
 			String tmp = ""+ this.elementsNumber;
 			StringBuilder stringBuilder = new StringBuilder(tmp);
 

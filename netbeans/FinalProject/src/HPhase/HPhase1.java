@@ -148,11 +148,6 @@ public class HPhase1 {
 
 	public static class MyReducer extends Reducer<Text, Text, IntWritable, Text> {
 
-		private void scalarProductEmit(double[] dValues, SparseVectorElement tmp, Context context) throws IOException, InterruptedException
-		{
-
-		}
-
 		@Override
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 		{

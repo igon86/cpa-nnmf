@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -59,8 +60,10 @@ public class HPhase3 {
 
 	}
 
-
-	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, IntWritable, MatrixMatrix> {
+	/**
+	 * null writable is used in order to serialize a MatrixMatrix only
+	 */
+	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
 
 		@Override
 		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
@@ -89,7 +92,7 @@ public class HPhase3 {
 				}
 			}
 
-			context.write(new IntWritable(0), result);
+			context.write(NullWritable.get(), result);
 		}
 	}
 

@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import util.*;
 
@@ -47,16 +48,16 @@ public class HPhase4 {
                     sb.append(input);
                     input = br.readLine();
                 }
+		System.out.println("DOVREI AVER LETTO: "+sb.toString());
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
                 WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
+		System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
             }
 
             // GUARDO DOVE SONO NELLA MATRICE H
             String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
             int i, j;
-
-
 
             for (i = 0; i < chunkName.length()
                     && (chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
@@ -75,7 +76,10 @@ public class HPhase4 {
 
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             MatrixVector mv = new MatrixVector(value);
-            context.write(new IntWritable(currentColumn++),MatrixMatrix.vectorMul(WW,mv));
+	    System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
+	    MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
+	    System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
+            context.write(new IntWritable(currentColumn++),out);
 
         }
     }
@@ -87,11 +91,13 @@ public class HPhase4 {
         job.setJarByClass(HPhase4.class);
         job.setMapperClass(MyMapper.class);
 
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+	job.setNumReduceTasks(0);
+	
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(MatrixVector.class);
 
         TextInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        TextOutputFormat.setOutputPath(job, new Path(args[1]));
 
         job.waitForCompletion(true);
     }
