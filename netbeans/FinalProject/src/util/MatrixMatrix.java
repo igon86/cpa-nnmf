@@ -11,9 +11,9 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 
     private int rowNumber;
     private int columnNumber;
-    private Double[][] value;
+    private double[][] value;
 
-    public MatrixMatrix(int row_number, int column_number, Double[][] elements) {
+    public MatrixMatrix(int row_number, int column_number, double[][] elements) {
         this.rowNumber = row_number;
         this.columnNumber = column_number;
         this.value = elements;
@@ -88,7 +88,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
         return this.columnNumber;
     }
 
-    public Double[][] getValues() {
+    public double[][] getValues() {
         return this.value;
     }
 
@@ -96,20 +96,26 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
     public void readFields(DataInput arg0) throws IOException {
         this.rowNumber = arg0.readInt();
         this.columnNumber = arg0.readInt();
-        this.columnNumber = arg0.readInt();
-        //String tmp = arg0.readLine();
-        //parseLine(tmp);
+	double[][] values = new double[this.rowNumber][this.columnNumber];
+	for (int i = 0 ; i< this.rowNumber;i++){
+	    for (int j = 0 ; j< this.columnNumber;j++){
+		values[i][j] = arg0.readDouble();
+	    }
+	}
+	this.value = values;
     }
 
     @Override
     public void write(DataOutput arg0) throws IOException {
 
         System.out.println("Sono nella write obj" + this.toString());
-        arg0.writeInt(7);
-        arg0.writeInt(8);
-        arg0.writeInt(12);
-
-        //arg0.writeChars(this.toString());
+        arg0.writeInt(this.rowNumber);
+        arg0.writeInt(this.columnNumber);
+	for (int i = 0 ; i< this.rowNumber;i++){
+	    for (int j = 0 ; j< this.columnNumber;j++){
+		arg0.writeDouble(this.value[i][j]);
+	    }
+	}
     }
 
     @Override
@@ -179,7 +185,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
     }
 
     public static MatrixVector vectorMul(MatrixMatrix m,MatrixVector v) {
-        MatrixVector ret = new MatrixVector(m.rowNumber, new Double[m.rowNumber]);
+        MatrixVector ret = new MatrixVector(m.rowNumber, new double[m.rowNumber]);
         for (int i = 0; i < m.rowNumber; i++) {
             ret.value[i] = m.getRowVector(i).internalProduct(v);
         }

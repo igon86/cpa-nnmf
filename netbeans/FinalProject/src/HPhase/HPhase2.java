@@ -8,7 +8,6 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.*; //Text
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -50,7 +49,7 @@ public class HPhase2{
 		public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
-			Double[] dValues = null, dResults = null;
+			double[] dValues = null, dResults = null;
 			MatrixVector mv = null;
 
 			Iterator<Text> iterator = values.iterator();

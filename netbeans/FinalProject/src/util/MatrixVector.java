@@ -12,9 +12,9 @@ import org.apache.hadoop.io.WritableComparable;
 public class MatrixVector implements WritableComparable<MatrixVector>{
 
 	private int elementsNumber;
-        protected Double[] value;
+        protected double[] value;
 
-        public MatrixVector(int element_number, Double[] elements)
+        public MatrixVector(int element_number, double[] elements)
         {
             this.elementsNumber = element_number;
             this.value = elements;
@@ -50,7 +50,7 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
         		System.out.println("stringa partizionata");
 
         		mv.elementsNumber = new Integer(splitted[0]);
-        		mv.value = new Double[mv.elementsNumber];
+        		mv.value = new double[mv.elementsNumber];
         		System.out.println("Dimensione presa");
 
         		for(int i=0; i<mv.elementsNumber && i<=splitted.length; i++)
@@ -73,7 +73,7 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
             return this.elementsNumber;
         }
 
-        public Double[] getValues()
+        public double[] getValues()
         {
             return this.value;
         }
@@ -85,9 +85,9 @@ public class MatrixVector implements WritableComparable<MatrixVector>{
         	int size = this.getNumberOfElement();
         	if(this.getNumberOfElement() != v.getNumberOfElement()) return null;
 
-    		Double[][] tmp = new Double[size][size];
-			Double[] vect1 = this.getValues();
-			Double[] vect2 = v.getValues();
+    		double[][] tmp = new double[size][size];
+			double[] vect1 = this.getValues();
+			double[] vect2 = v.getValues();
 
 			for(int i=0; i<size; i++)
 			{
