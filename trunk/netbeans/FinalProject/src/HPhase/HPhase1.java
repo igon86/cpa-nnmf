@@ -100,6 +100,8 @@ public class HPhase1 {
 	    	String s = key.toString();
 	    	for (j=0; j < s.length() && (s.charAt(j) >= '0' && s.charAt(j) <= '9'); j++);
 	    	int parsed = Integer.parseInt(s.substring(0, j));
+		System.out.println("Invocato FirstPartitioner con KEY: "+key.toString()+"\nVALUE: "
+			+value.toString()+"\nnumPartitions: "+numPartitions +"\n e lo mando al reducer: "+parsed%numPartitions);
 	      return parsed % numPartitions;
 	    }
           }
@@ -197,7 +199,7 @@ public class HPhase1 {
 		job.setJarByClass(HPhase1.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
-                //job.setNumReduceTasks(0);
+                job.setNumReduceTasks(2);
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
@@ -208,8 +210,9 @@ public class HPhase1 {
 		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
+		TextInputFormat.addInputPath(job, new Path(args[1]));
+		FileOutputFormat.setOutputPath(job, new Path(args[2]));
+		System.out.println("QUESTO JOB GIRERA CON "+job.getNumReduceTasks()+ " REDUCE TASK");
 		job.waitForCompletion(true);
 	}
 }

@@ -48,7 +48,7 @@ public class HPhase4 {
                     sb.append(input);
                     input = br.readLine();
                 }
-		System.out.println("DOVREI AVER LETTO: "+sb.toString());
+		System.out.println("DA FILE HO LETTO: "+sb.toString());
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
                 WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
