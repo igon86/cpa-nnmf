@@ -109,15 +109,14 @@ public class HPhase5 {
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
-		//job.setNumReduceTasks(0);
-
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
-		//TextOutputFormat.setOutputPath(job, new Path(args[1]));
+		TextInputFormat.addInputPath(job, new Path(args[1]));
+		TextInputFormat.addInputPath(job, new Path(args[2]));
 
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileOutputFormat.setOutputPath(job, new Path(args[3]));
 
 		job.waitForCompletion(true);
 	}

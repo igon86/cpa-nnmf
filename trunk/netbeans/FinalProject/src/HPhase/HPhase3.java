@@ -47,8 +47,9 @@ public class HPhase3 {
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
-
-			MatrixVector mv = new MatrixVector(value);
+			String vector = value.toString().split("\t")[1];
+			
+			MatrixVector mv = new MatrixVector(new Text(vector));
 
 			MatrixMatrix result = mv.externalProduct(mv);
 
