@@ -30,7 +30,7 @@ import util.SparseVectorElement;
 public class HPhase1 {
 
 	private static boolean W = false;
-	private static int currentRow;
+	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, Text> {
@@ -47,24 +47,24 @@ public class HPhase1 {
 
 			if (chunkName.startsWith("W")) /* A row vector must be emitted */
 			{
-				int i,j;
+				//int i,j;
 
 				W = true;
-
-				for (i = 0; i < chunkName.length() &&
+				/**
+				//for (i = 0; i < chunkName.length() &&
 					(chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
 
-				for (j=i; j < chunkName.length() &&
+				//for (j=i; j < chunkName.length() &&
 				 (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
 
-				try
+				//try
 				{
 					String rowNumber = chunkName.substring(i, j);
 					System.out.println("GUARDARE:" + rowNumber);
 					currentRow = new Integer(rowNumber);
 				}
 				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
-			}
+			*/}
 			else if( ! chunkName.startsWith("A")) throw new IOException("File name not correct");
 		}
 
@@ -74,8 +74,9 @@ public class HPhase1 {
 
 			if (W)
 			{
-				context.write(new Text("" + currentRow +"W"  ), new Text(value.toString()));
-				currentRow++;
+				int currentRow;
+				String[] values = value.toString().split("\t");
+				context.write(new Text(values[0]+"W"), new Text(values[1]) );
 			}
 			else  /* The sparse element must be emitted */
 			{
@@ -115,16 +116,17 @@ public class HPhase1 {
 		@Override
 	    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)
 	    {
+		System.out.println("Sono nella GroupingComparator");
                 DataInputBuffer buffer = new DataInputBuffer();
                 WritableComparable t1 = new Text();
                 WritableComparable t2 = new Text();
                 try {
                     buffer.reset(b1, s1, l1);
                     t1.readFields(buffer);
-                    System.out.println("STICAZZI1: "+t1.toString());
+                    System.out.println("ARG1: "+t1.toString());
                     buffer.reset(b2, s2, l2);
                     t2.readFields(buffer);
-                    System.out.println("STICAZZI2: "+t2.toString());
+                    System.out.println("ARG2: "+t2.toString());
 
                 } catch (IOException e) {
                     System.out.println("col cazzo che ha funzionato");
