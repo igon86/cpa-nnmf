@@ -37,7 +37,7 @@ public class HPhase1 {
 
 		@Override
 		protected void setup(Context context) throws IOException
-                {
+		{
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
 			/*  the number present in the file name is the number of the first stored row vector
