@@ -49,7 +49,7 @@ public class HPhase3 {
 		{
 			String vector = value.toString().split("\t")[1];
 			
-			MatrixVector mv = new MatrixVector(new Text(vector));
+			MatrixVector mv = MatrixVector.parseLine(vector);
 
 			MatrixMatrix result = mv.externalProduct(mv);
 
