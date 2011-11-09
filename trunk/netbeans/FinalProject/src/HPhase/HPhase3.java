@@ -16,6 +16,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import util.*;
 
@@ -103,6 +104,14 @@ public class HPhase3 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
+		if(args.length != 2)
+		{
+			System.err.println("The number of the input parameter are not corrected");
+			System.err.println("First Parameter: W files directories");
+			System.err.println("Second Parameter: Output directory");
+			System.exit(-1);
+		}
+
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step3");
@@ -110,15 +119,14 @@ public class HPhase3 {
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
+		// Testing Job Options
 		//job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
-		//TextOutputFormat.setOutputPath(job, new Path(args[1]));
-
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		TextOutputFormat.setOutputPath(job, new Path(args[1]));
 
 		job.waitForCompletion(true);
 	}

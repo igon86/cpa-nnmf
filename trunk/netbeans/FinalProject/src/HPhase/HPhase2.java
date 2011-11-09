@@ -68,7 +68,7 @@ public class HPhase2{
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 2)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
@@ -88,6 +88,7 @@ public class HPhase2{
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixVector.class);
 
+		// Testing Job Options
 		job.setNumReduceTasks(2);
 		
 		TextInputFormat.addInputPath(job, new Path(args[0]));

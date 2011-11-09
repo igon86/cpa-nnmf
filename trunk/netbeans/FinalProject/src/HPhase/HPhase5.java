@@ -8,7 +8,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -96,6 +95,15 @@ public class HPhase5 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
+		if(args.length != 4)
+		{
+			System.err.println("The number of the input parameter are not corrected");
+			System.err.println("First/Second/Third Parameter: "
+					+ "H/X/Y files directories");
+			System.err.println("Third Parameter: Output directory");
+			System.exit(-1);
+		}
+
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step5");
@@ -109,6 +117,10 @@ public class HPhase5 {
 		job.setOutputValueClass(MatrixVector.class);
 
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
+
+		// Testing Job Options
+
+
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		TextInputFormat.addInputPath(job, new Path(args[1]));
 		TextInputFormat.addInputPath(job, new Path(args[2]));
