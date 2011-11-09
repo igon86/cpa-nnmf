@@ -195,13 +195,20 @@ public class HPhase1 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
+		if(args.length != 3)
+		{
+			System.err.println("The number of the input parameter are not corrected");
+			System.err.println("First/Second Parameter: A/W files directories");
+			System.err.println("Third Parameter: Output directory");
+			System.exit(-1);
+		}
+
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step1");
 		job.setJarByClass(HPhase1.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
-                job.setNumReduceTasks(2);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
 		job.setMapOutputValueClass(Text.class);
@@ -211,12 +218,14 @@ public class HPhase1 {
 		//job.setPartitionerClass(FirstPartitioner.class);
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 
+		// Testing Job Options
+		job.setNumReduceTasks(2);
 		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		TextInputFormat.addInputPath(job, new Path(args[1]));
 		FileOutputFormat.setOutputPath(job, new Path(args[2]));
-		System.out.println("QUESTO JOB GIRERA CON "+job.getNumReduceTasks()+ " REDUCE TASK");
+
 		job.waitForCompletion(true);
 	}
 }
