@@ -27,16 +27,19 @@ W_DATA=$4
 X_PARTIAL=X_PARTIAL
 X_FINAL=X_FINAL
 C_DATA=C_DATA
+H_PRIME=H_PRIME
 
 
 ###### STARTING H PHASE ######
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase1 $A_DATA $W_DATA X_PARTIAL
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase2 X_PARTIAL X_FINAL
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase1 $A_DATA $W_DATA $X_PARTIAL
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase2 $X_PARTIAL $X_FINAL
 
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase3 W_DATA C_DATA
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase4 H_DATA C_DATA Y_FINAL
+#### hadoop mv
 
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase5 H_DATA X_FINAL Y_FINAL
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase3 $W_DATA $C_DATA
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase4 $H_DATA ${C_DATA}/part-r-00000 $Y_FINAL
+
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhase.HPhase5 $H_DATA $X_FINAL $Y_FINAL $H_PRIME
 
 ###cd ${HADOOP_HOME}/bin
 ##file1=$(dirname $1)
