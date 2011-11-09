@@ -146,7 +146,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	    stringBuilder.append("#" + this.value[i]);
 	}
 
-	stringBuilder.append('\n');
+	//stringBuilder.append('\n');
 	return stringBuilder.toString();
     }
 
@@ -170,4 +170,16 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 
 	}
     }
+       
+       public void inPlaceSum(MatrixVector m) throws IOException {
+	   if (this.elementsNumber != m.elementsNumber) {
+	    throw new IOException();
+	}
+	for (int i = 0; i < this.elementsNumber; i++) {
+
+	    this.value[i] += m.value[i];
+
+	}
+       }
+
 }

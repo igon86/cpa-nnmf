@@ -19,55 +19,46 @@ import util.*;
  */
 public class HPhase2{
 
-	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
+    /* The output values must be text in order to distinguish the different data types */
+    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
 
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
-		{
-			String[] input = value.toString().split("\t");
-			//System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
-			try {
-				System.out.println(input[0].length() + " $$$ " + input[0].trim());
-				int column = Integer.parseInt(input[0]);
-				context.write(new IntWritable(column), new Text(input[1]));
-			}
-			catch (Exception e) {
-				System.out.println(input[0].trim());
-			}
+	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+	    String[] input = value.toString().split("\t");
+	    //System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
+	    int column = 0;
+	    //System.out.println(input[0].length() + " $$$ " + input[0].trim());
+	    try {
+		column = Integer.parseInt(input[0]);
+	    } catch (NumberFormatException e) {
+		System.out.println("Problem parsing the key: "+input[0].trim());
+		throw new IOException(e.toString());
+	    }
+	    context.write(new IntWritable(column), MatrixVector.parseLine(input[1]));
 
-			for (int i = 0; i < input.length; i++) {
-				System.out.println(input[i]);
-			}
-		}
 	}
+    }
 
-	public static class MyReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
+	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, MatrixVector> {
 
-		public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
-			double[] dValues = null, dResults = null;
-			MatrixVector mv = null;
+			MatrixVector mv,result = null;
 
-			Iterator<Text> iterator = values.iterator();
+			Iterator<MatrixVector> iterator = values.iterator();
 			if(iterator.hasNext())
 			{
-				mv = new MatrixVector(iterator.next());
-				dResults = mv.getValues();
+				mv = iterator.next();
+				result = new MatrixVector(mv.getNumberOfElement(),mv.getValues().clone());
 			}
 
 			while(iterator.hasNext())
 			{
-				mv = new MatrixVector(iterator.next());
-				dValues = mv.getValues();
-				for(int i=0; i<dValues.length; i++)
-				{
-					dResults[i] += dValues[i];
-				}
+				mv = iterator.next();
+				result.inPlaceSum(mv);
 			}
 
-			MatrixVector result = new MatrixVector(dResults.length, dResults);
-			context.write(key, new Text(result.toString()));
+			context.write(key,result);
 		}
 	}
 
@@ -84,11 +75,13 @@ public class HPhase2{
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
+		job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(Text.class);
+		job.setOutputValueClass(MatrixVector.class);
 
-		//job.setOutputValueGroupingComparator(Class);
-
+		job.setNumReduceTasks(2);
+		
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 

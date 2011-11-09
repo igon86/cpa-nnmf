@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import util.IntAndIdWritable;
 import util.MatrixVector;
 import util.SparseElement;
 import util.SparseVectorElement;
@@ -33,7 +34,7 @@ public class HPhase1 {
 	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, Text, Text> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, Text> {
 
 		@Override
 		protected void setup(Context context) throws IOException
@@ -74,15 +75,14 @@ public class HPhase1 {
 
 			if (W)
 			{
-				int currentRow;
 				String[] values = value.toString().split("\t");
-				context.write(new Text(values[0]+"W"), new Text(values[1]) );
+				context.write(new IntAndIdWritable(values[0],'W'), new Text(values[1]) );
 			}
 			else  /* The sparse element must be emitted */
 			{
 				SparseElement se = new SparseElement(value);
 				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-				context.write(new Text("" + se.getRow() + "a"), new Text(sve.toString()));
+				context.write(new IntAndIdWritable(se.getRow(),'a'), new Text(sve.toString()));
 			}
 		}
 //lower case is usefull for the ordering of the key
@@ -150,10 +150,10 @@ public class HPhase1 {
 	    }
 	  }
 
-	public static class MyReducer extends Reducer<Text, Text, IntWritable, Text> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, Text, IntWritable, MatrixVector> {
 
 		@Override
-		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 		{
                         System.out.println("REDUCE KEY:" +key);
 			/* The array contains the the row vector once the w row vector is read */
@@ -183,7 +183,7 @@ public class HPhase1 {
 				if (sve.getValue() != 0.0)
 				{
 					MatrixVector mvEmit =  mv.ScalarProduct(sve.getValue());
-					context.write(new IntWritable(sve.getCoordinate()), new Text(mvEmit.toString()));
+					context.write(new IntWritable(sve.getCoordinate()), mvEmit);
 				}
 			}
 		}
@@ -203,11 +203,13 @@ public class HPhase1 {
 		job.setReducerClass(MyReducer.class);
                 job.setNumReduceTasks(2);
 
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+		job.setMapOutputKeyClass(IntAndIdWritable.class);
+		job.setMapOutputValueClass(Text.class);
+		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputValueClass(MatrixVector.class);
 
-		job.setPartitionerClass(FirstPartitioner.class);
-		job.setGroupingComparatorClass(FirstGroupingComparator.class);
+		//job.setPartitionerClass(FirstPartitioner.class);
+		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 
 		//job.setOutputValueGroupingComparator(Class);
 

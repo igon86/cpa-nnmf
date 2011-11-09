@@ -28,6 +28,11 @@ public class IntAndIdWritable extends IntWritable {
 	this.id = charValue;
     }
 
+    public IntAndIdWritable(String intValue,char charValue){
+	super(Integer.parseInt(intValue));
+	this.id = charValue;
+    }
+
     @Override
     public void readFields(DataInput in) throws IOException
     {
