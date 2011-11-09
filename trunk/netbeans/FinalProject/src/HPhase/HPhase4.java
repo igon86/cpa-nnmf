@@ -98,7 +98,7 @@ public class HPhase4 {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("otherFiles", args[2]);
+        conf.set("otherFiles", args[1]);
         Job job = new Job(conf, "MapRed Step4");
         job.setJarByClass(HPhase4.class);
         job.setMapperClass(MyMapper.class);
@@ -109,7 +109,7 @@ public class HPhase4 {
         job.setOutputValueClass(MatrixVector.class);
 
         TextInputFormat.addInputPath(job, new Path(args[0]));
-        TextOutputFormat.setOutputPath(job, new Path(args[1]));
+        TextOutputFormat.setOutputPath(job, new Path(args[2]));
 
         job.waitForCompletion(true);
     }
