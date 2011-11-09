@@ -68,6 +68,14 @@ public class HPhase2{
 	 */
 	public static void main(String[] args) throws Exception
 	{
+		if(args.length != 3)
+		{
+			System.err.println("The number of the input parameter are not corrected");
+			System.err.println("First Parameter: HPhase1 output files directories");
+			System.err.println("Second Parameter: Output directory");
+			System.exit(-1);
+		}
+
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "MapRed Step2");
