@@ -40,13 +40,15 @@ public class HPhase5 {
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
+			System.out.println("map della fase 5 VALUE" +value.toString());
+			if(value.toString().trim().length() != 0){ //this problem must be solved
 			String[] values = value.toString().split("\t");
 			int column = Integer.parseInt(values[0]);
 
 			MatrixVector out = new MatrixVector(new Text(values[1]));
 
 			context.write(new IntAndIdWritable(column,matrixId), out);
-
+			}
 		}
 
 	}
@@ -76,7 +78,7 @@ public class HPhase5 {
 				//    throw new IOException("ERRORE nella somma di matrici");
 				//}
 			}
-			if (iter.hasNext() || i<3){
+			if (iter.hasNext() || i<3){ // this must throw an Exception
 			    System.out.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
 			}
 			else{

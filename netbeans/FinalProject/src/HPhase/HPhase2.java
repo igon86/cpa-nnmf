@@ -79,7 +79,7 @@ public class HPhase2{
 	{
 		Configuration conf = new Configuration();
 
-		Job job = new Job(conf, "MapRed Step1");
+		Job job = new Job(conf, "MapRed Step2");
 		job.setJarByClass(HPhase2.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);

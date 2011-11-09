@@ -1,0 +1,30 @@
+1) Secondary Sorting encapsulated in the Int+ValType
+1a) HPhase1 modified
+1b) HPhase5 modified
+
+2) Need to adjust the serialization/deserialiazation & printing/parsing
+  of the Matrix Vector with the new syntax (row/column number).
+  ===>> Adding the context variable k.
+
+* Need to factorize all the phase to procede towards WPhase
+
+* Distributed Cache instead of reading from distributed File System
+
+* SequenceOutputFormat can be used for intermedite data
+
+
+Other Things:
+
+* The C Phase4's parameter need to be invoked as a file name
+
+* All the test must be added (number of parameters, etc)
+
+* The X resulting matrix project the size of the Original Matrix:
+	===> The problems arise when we are computing the Phase 5
+	===> Unwanted Feature!!!
+	(WE MUST TAKE CARE TO SEE WHAT HAPPENS IN THE FOLLOWING HPHASES)
+
+Dubt:
+
+* FileSplit vs InputSplit
+

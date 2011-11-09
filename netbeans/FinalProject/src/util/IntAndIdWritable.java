@@ -73,7 +73,8 @@ public class IntAndIdWritable extends IntWritable {
   {
     return super.toString()+"-"+this.id;
   }
-    // eredità il comparatore da intWritable
+    // eredità il comparatore da intWritable: in questo modo riesce a fare il grouping
+	// funziona perche' l'int writable e' stato scritto per primo
     //static{
     //	    WritableComparator.define(IntAndIdWritable.class, new IntWritable.Comparator());
     //}
