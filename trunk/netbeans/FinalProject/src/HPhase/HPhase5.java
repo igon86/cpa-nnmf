@@ -26,35 +26,26 @@ import util.*;
 public class HPhase5 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, MatrixVector> {
 
+		char matrixId;
 		@Override
 		protected void setup(Context context) throws IOException
 		{
 			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
-			/* the number present in the file name is the number of the first stored row vector
-			// Through a static variable we take in account the right row number knowing that the
-			// row vector are read sequentially in the file split
-			*/
-
-			if (!chunkName.startsWith("W"))
-			{
-				throw new IOException("File name is not correct: "+chunkName);
-			}
+			matrixId = chunkName.charAt(0);
 		}
 
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
+			String[] values = value.toString().split("\t");
+			int column = Integer.parseInt(values[0]);
 
-			MatrixVector mv = new MatrixVector(value);
+			MatrixVector out = new MatrixVector(new Text(values[1]));
 
-			MatrixMatrix result = mv.externalProduct(mv);
-
-			System.out.println("External Prod = "+result.toString());
-
-			context.write(new IntWritable(0), result);
+			context.write(new IntAndIdWritable(column,matrixId), out);
 
 		}
 
@@ -63,36 +54,37 @@ public class HPhase5 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, MatrixVector> {
 
 		@Override
-		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
 		{
-			MatrixMatrix result;
+			// reduce should receive H,X,Y vector exactly in this order AND nothing else
+			MatrixVector[] vectors = new MatrixVector[3];
+			MatrixVector val = null;
 
-			Iterator<MatrixMatrix> iter = values.iterator();
-			MatrixMatrix val;
+			Iterator<MatrixVector> iter = values.iterator();
 
-			if(iter.hasNext())
+			int i = 0;
+			while (iter.hasNext() && i <3)
 			{
 				val = iter.next();
-				result = new MatrixMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
-				System.out.println("REDUCE: ho ricevuto: "+result.toString());
+				vectors[i++] = new MatrixVector(val.getNumberOfElement(), val.getValues().clone());
+				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
+				//if (!result.inPlaceSum(val)){
+				//    System.out.println("ERRORE nella somma di matrici");
+				//    throw new IOException("ERRORE nella somma di matrici");
+				//}
 			}
-			else throw new IOException("It shouldn't be never verified");
-
-
-			while (iter.hasNext())
-			{
-				val = iter.next();
-				System.out.println("REDUCE: ho ricevuto: "+val.toString());
-				if (!result.inPlaceSum(val)){
-				    System.out.println("ERRORE nella somma di matrici");
-				    throw new IOException("ERRORE nella somma di matrici");
-				}
+			if (iter.hasNext() || i<3){
+			    System.out.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
 			}
-
-			context.write(NullWritable.get(), result);
+			else{
+			    vectors[0].inPlacePointMul(vectors[1]);
+			    vectors[0].inPlacePointDiv(vectors[2]);
+			    context.write(new IntWritable(key.get()), vectors[0]);
+			}
+			
 		}
 	}
 
@@ -104,14 +96,17 @@ public class HPhase5 {
 	{
 		Configuration conf = new Configuration();
 
-		Job job = new Job(conf, "MapRed Step3");
+		Job job = new Job(conf, "MapRed Step5");
 		job.setJarByClass(HPhase5.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
+		job.setMapOutputKeyClass(IntAndIdWritable.class);
+		job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixMatrix.class);
+		job.setOutputValueClass(MatrixVector.class);
 
+		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		TextInputFormat.addInputPath(job, new Path(args[1]));
 		TextInputFormat.addInputPath(job, new Path(args[2]));
