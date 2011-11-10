@@ -21,26 +21,6 @@ import util.*;
  */
 public class HPhase2{
 
-    /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixVector> {
-
-	public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException {
-	    /**String[] input = value.toString().split("\t");
-	    //System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
-	    int column = 0;
-	    //System.out.println(input[0].length() + " $$$ " + input[0].trim());
-	    try {
-		column = Integer.parseInt(input[0]);
-	    } catch (NumberFormatException e) {
-		System.out.println("Problem parsing the key: "+input[0].trim());
-		throw new IOException(e.toString());
-	    }
-	     */
-	    context.write(key, value);
-
-	}
-    }
-
 	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, MatrixVector> {
 
 		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException

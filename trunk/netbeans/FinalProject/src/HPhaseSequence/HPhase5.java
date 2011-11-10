@@ -31,9 +31,9 @@ public class HPhase5 {
 		@Override
 		protected void setup(Context context) throws IOException
 		{
-			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
+			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
-			matrixId = chunkName.charAt(0);
+			matrixId = folderName.charAt(0);
 		}
 
 		@Override

@@ -39,14 +39,14 @@ public class HPhase1 {
 		@Override
 		protected void setup(Context context) throws IOException
 		{
-			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
+			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
 			/*  the number present in the file name is the number of the first stored row vector
                             Through a static variable we take into account the right row number knowing that the
                             row vector are read sequentially in the file split
 			*/
 
-			if (chunkName.startsWith("W")) /* A row vector must be emitted */
+			if (folderName.startsWith("W")) /* A row vector must be emitted */
 			{
 				//int i,j;
 
@@ -66,7 +66,7 @@ public class HPhase1 {
 				}
 				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
 			*/}
-			else if( ! chunkName.startsWith("A")) throw new IOException("File name not correct");
+			else if( ! folderName.startsWith("A")) throw new IOException("File name not correct");
 		}
 
 		@Override
