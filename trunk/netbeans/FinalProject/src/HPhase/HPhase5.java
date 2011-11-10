@@ -40,14 +40,14 @@ public class HPhase5 {
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 			System.out.println("map della fase 5 VALUE" +value.toString());
-			if(value.toString().trim().length() != 0){ //this problem must be solved
-			String[] values = value.toString().split("\t");
-			int column = Integer.parseInt(values[0]);
+			//if(value.toString().trim().length() != 0){ //this problem must be solved
+			    String[] values = value.toString().split("\t");
+			    int column = Integer.parseInt(values[0]);
 
-			MatrixVector out = new MatrixVector(new Text(values[1]));
+			    MatrixVector out = new MatrixVector(new Text(values[1]));
 
-			context.write(new IntAndIdWritable(column,matrixId), out);
-			}
+			    context.write(new IntAndIdWritable(column,matrixId), out);
+			//}
 		}
 
 	}
@@ -110,6 +110,8 @@ public class HPhase5 {
 		job.setJarByClass(HPhase5.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
+
+		//job.setNumReduceTasks(2);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
 		job.setMapOutputValueClass(MatrixVector.class);

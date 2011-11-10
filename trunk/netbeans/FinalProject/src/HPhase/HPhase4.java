@@ -29,7 +29,6 @@ public class HPhase4 {
     public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
 
         private static MatrixMatrix WW;
-        private static int currentColumn;
 
         protected void setup(Context context) throws IOException
 		{
@@ -60,38 +59,18 @@ public class HPhase4 {
 		System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
             }
 
-            // GUARDO DOVE SONO NELLA MATRICE H
-            String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
-            int i, j;
-
-            for (i = 0; i < chunkName.length()
-                    && (chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
-
-            for (j = i; j < chunkName.length()
-                    && (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
-
-            try
-			{
-                String columnNumber = chunkName.substring(i, j);
-                System.out.println("LA PRIMA COLONNA E:" + columnNumber);
-                currentColumn = new Integer(columnNumber);
-            }
-			catch (NumberFormatException e)
-			{
-                throw new IOException("File name conversion failled");
-            }
         }
 
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
-
+			int column = Integer.parseInt(value.toString().split("\t")[0]);
 			String vector = value.toString().split("\t")[1];
 			MatrixVector mv = MatrixVector.parseLine(vector);
 
 			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
 			MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
 			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
-            context.write(new IntWritable(currentColumn++),out);
+			context.write(new IntWritable(column),out);
 
         }
     }
