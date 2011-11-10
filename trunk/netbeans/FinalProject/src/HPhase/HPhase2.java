@@ -22,6 +22,7 @@ public class HPhase2{
     /* The output values must be text in order to distinguish the different data types */
     public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
 
+	@Override
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 	    String[] input = value.toString().split("\t");
 	    //System.out.println(input.length + " @ "+input[0] + " ! " + input[1]);
@@ -40,6 +41,7 @@ public class HPhase2{
 
 	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, MatrixVector> {
 
+		@Override
 		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
