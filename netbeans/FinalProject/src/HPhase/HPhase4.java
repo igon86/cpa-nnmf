@@ -75,10 +75,9 @@ public class HPhase4 {
         }
     }
 
-    public static void main(String[] args) throws Exception 
+	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
-		{
+		if (args.length != 3) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: H files directories");
 			System.err.println("Second Parameter: HPhase3 output file");
@@ -86,23 +85,23 @@ public class HPhase4 {
 			System.exit(-1);
 		}
 
-        Configuration conf = new Configuration();
-        conf.set("otherFiles", args[1]);
-        Job job = new Job(conf, "MapRed Step4");
-        job.setJarByClass(HPhase4.class);
-        job.setMapperClass(MyMapper.class);
-	
-        job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(MatrixVector.class);
+		Configuration conf = new Configuration();
+		conf.set("otherFiles", args[1]);
+		Job job = new Job(conf, "MapRed Step4");
+		job.setJarByClass(HPhase4.class);
+		job.setMapperClass(MyMapper.class);
+
+		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputValueClass(MatrixVector.class);
 
 		job.setNumReduceTasks(0);
 
 		// Testing Job Options
 
 
-        TextInputFormat.addInputPath(job, new Path(args[0]));
-        TextOutputFormat.setOutputPath(job, new Path(args[2]));
+		TextInputFormat.addInputPath(job, new Path(args[0]));
+		TextOutputFormat.setOutputPath(job, new Path(args[2]));
 
-        job.waitForCompletion(true);
-    }
+		job.waitForCompletion(true);
+	}
 }
