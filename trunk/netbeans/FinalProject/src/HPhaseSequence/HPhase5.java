@@ -12,9 +12,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import util.*;
 
@@ -120,12 +123,15 @@ public class HPhase5 {
 
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 
+		job.setInputFormatClass(SequenceFileInputFormat.class);
+		//job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
 		// Testing Job Options
 
 
-		TextInputFormat.addInputPath(job, new Path(args[0]));
-		TextInputFormat.addInputPath(job, new Path(args[1]));
-		TextInputFormat.addInputPath(job, new Path(args[2]));
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileInputFormat.addInputPath(job, new Path(args[1]));
+		FileInputFormat.addInputPath(job, new Path(args[2]));
 
 		FileOutputFormat.setOutputPath(job, new Path(args[3]));
 

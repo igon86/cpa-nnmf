@@ -13,6 +13,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import util.*;
 /**
@@ -70,9 +71,12 @@ public class HPhase2{
 		//job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixVector.class);
+		
 		job.setInputFormatClass(SequenceFileInputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		// Testing Job Options
 		job.setNumReduceTasks(2);
+		
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		//TextInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));

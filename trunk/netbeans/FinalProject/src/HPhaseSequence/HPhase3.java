@@ -13,9 +13,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import util.*;
@@ -27,32 +30,13 @@ import util.*;
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixMatrix> {
 
 		@Override
-		protected void setup(Context context) throws IOException
+		public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
 		{
-			String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
 
-			/* the number present in the file name is the number of the first stored row vector
-			// Through a static variable we take in account the right row number knowing that the
-			// row vector are read sequentially in the file split
-			*/
-
-			if (!chunkName.startsWith("W"))
-			{
-				throw new IOException("File name is not correct: "+chunkName);
-			}
-		}
-
-		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
-		{
-			String vector = value.toString().split("\t")[1];
-			
-			MatrixVector mv = MatrixVector.parseLine(vector);
-
-			MatrixMatrix result = mv.externalProduct(mv);
+			MatrixMatrix result = value.externalProduct(value);
 
 			System.out.println("External Prod = "+result.toString());
 
@@ -121,12 +105,16 @@ public class HPhase3 {
 
 		// Testing Job Options
 		//job.setNumReduceTasks(0);
-
-		job.setOutputKeyClass(IntWritable.class);
+		job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputValueClass(MatrixMatrix.class);
+		job.setOutputKeyClass(NullWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);
 
-		TextInputFormat.addInputPath(job, new Path(args[0]));
-		TextOutputFormat.setOutputPath(job, new Path(args[1]));
+		job.setInputFormatClass(SequenceFileInputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
 		job.waitForCompletion(true);
 	}
