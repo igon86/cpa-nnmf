@@ -10,7 +10,7 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class SparseVectorElement implements WritableComparable<SparseVectorElement>{
 
-	private Integer coordinate;
+		private Integer coordinate;
         private Double value;
 
         public SparseVectorElement(int coordinate, double value)
@@ -84,6 +84,7 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
 			return (int) (this.value - o.value);
 		}
 
+	@Override
 		public String toString()
 		{
 			return ""+ this.coordinate.toString() +"#" + this.value.toString() + "\n";
