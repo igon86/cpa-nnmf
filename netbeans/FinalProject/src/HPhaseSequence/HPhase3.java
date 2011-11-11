@@ -30,13 +30,13 @@ import util.*;
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntWritable, MatrixMatrix> {
 
 		@Override
-		public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
-
-			MatrixMatrix result = value.externalProduct(value);
+			MatrixVector mv = (MatrixVector) value.get();
+			MatrixMatrix result = mv.externalProduct(mv);
 
 			System.out.println("External Prod = "+result.toString());
 

@@ -38,7 +38,7 @@ public class HPhase1 {
 	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, GenericWritablePhase1> {
+	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntAndIdWritable, GenericWritablePhase1> {
 
 		@Override
 		protected void setup(Context context) throws IOException
@@ -76,7 +76,7 @@ public class HPhase1 {
 		}
 
 		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
 
 			if (W)
