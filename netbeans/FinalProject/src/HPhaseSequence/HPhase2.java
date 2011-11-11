@@ -68,8 +68,8 @@ public class HPhase2{
 		//job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
-		//job.setMapOutputKeyClass(IntWritable.class);
-		//job.setMapOutputValueClass(MatrixVector.class);
+		job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericWritablePhase1.class);
 		

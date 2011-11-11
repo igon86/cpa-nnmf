@@ -125,7 +125,7 @@ public class HPhase5 {
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
-		//job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		// Testing Job Options
 
