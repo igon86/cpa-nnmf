@@ -3,8 +3,12 @@
 1b) HPhase5 modified [DONE]
 
 2) Need to adjust the serialization/deserialiazation & printing/parsing
-  of the Matrix Vector with the new syntax (row/column number).
-  ===>> SequenceOutputFormat can be used for intermedite data
+  of the Matrix Vector with the new syntax (row/column number). [DONE]
+  ===>> SequenceOutputFormat can be used for intermedite data [DONE]
+	All the MapReduce Phase must work with codified data
+	===>> Introduce the MAP-REDUCE internal representation
+		===>> Create MAP_REDUCE phase to convert from readable format to codified one
+		===>> Create MAP_REDUCE phase to convert from codified format to readable one
   ===>> Adding the context variable k.
 
 * Need to factorize all the phase to procede towards WPhase
