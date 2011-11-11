@@ -42,7 +42,7 @@ public class TextToSequenceMatrixWHTranslator
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 2)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");

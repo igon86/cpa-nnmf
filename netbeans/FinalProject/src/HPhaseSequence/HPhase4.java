@@ -16,9 +16,12 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import util.*;
@@ -26,7 +29,7 @@ import util.*;
 public class HPhase4 {
 
     /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
+    public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixVector> {
 
         private static MatrixMatrix WW;
 
@@ -36,17 +39,18 @@ public class HPhase4 {
             Configuration conf = context.getConfiguration();
             String otherFiles = conf.get("otherFiles", null);
             if (otherFiles != null)
-			{
+	    {
                 FileSystem fs = FileSystem.get(conf);
                 //creo il path dei file esterni
                 Path inFile = new Path(otherFiles);
+		SequenceFile
                 FSDataInputStream in = fs.open(inFile);
                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-				String input;
+		String input;
                 StringBuilder sb = new StringBuilder();
-                input = br.readLine();
-				while (!input.isEmpty())
+                input = br.read
+		while (!input.isEmpty())
 				{
                     sb.append(input);
                     input = br.readLine();
@@ -61,16 +65,13 @@ public class HPhase4 {
 
         }
 
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
+        public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
 		{
-			int column = Integer.parseInt(value.toString().split("\t")[0]);
-			String vector = value.toString().split("\t")[1];
-			MatrixVector mv = MatrixVector.parseLine(vector);
 
-			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
-			MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
+			System.out.println("MI ARRIVA STO VETTORE: "+value.toString());
+			MatrixVector out = MatrixMatrix.vectorMul(WW,value);
 			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
-			context.write(new IntWritable(column),out);
+			context.write(key,out);
 
         }
     }
@@ -95,13 +96,16 @@ public class HPhase4 {
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(MatrixVector.class);
 
-		job.setNumReduceTasks(0);
+	job.setInputFormatClass(SequenceFileInputFormat.class);
+	job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
+	job.setNumReduceTasks(0);
 
 		// Testing Job Options
 
 
-        TextInputFormat.addInputPath(job, new Path(args[0]));
-        TextOutputFormat.setOutputPath(job, new Path(args[2]));
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[2]));
 
         job.waitForCompletion(true);
     }
