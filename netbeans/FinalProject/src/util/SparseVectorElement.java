@@ -10,8 +10,8 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class SparseVectorElement implements WritableComparable<SparseVectorElement>{
 
-		private Integer coordinate;
-        private Double value;
+	private int coordinate;
+        private double value;
 
         public SparseVectorElement(int coordinate, double value)
         {
@@ -63,16 +63,17 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
         }
 
         @Override
-		public void readFields(DataInput arg0) throws IOException
+		public void readFields(DataInput din) throws IOException
 		{
-        	String tmp = arg0.readLine();
-        	parseLine(tmp);
+			this.coordinate = din.readInt();
+			this.value = din.readDouble();
 		}
 
 		@Override
-		public void write(DataOutput arg0) throws IOException
+		public void write(DataOutput dout) throws IOException
 		{
-			arg0.writeBytes(this.toString());
+			dout.writeInt(coordinate);
+			dout.writeDouble(value);
 		}
 
 		@Override
@@ -87,6 +88,6 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
 	@Override
 		public String toString()
 		{
-			return ""+ this.coordinate.toString() +"#" + this.value.toString() + "\n";
+			return ""+ this.coordinate +"#" + this.value + "\n";
 		}
 }

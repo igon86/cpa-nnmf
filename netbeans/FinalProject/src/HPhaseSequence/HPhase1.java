@@ -10,6 +10,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.SequenceFileAsBinaryOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
@@ -20,6 +21,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import util.GenericWritablePhase1;
 import util.IntAndIdWritable;
 import util.MatrixVector;
 import util.SparseElement;
@@ -36,7 +38,7 @@ public class HPhase1 {
 	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, Text> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, GenericWritablePhase1> {
 
 		@Override
 		protected void setup(Context context) throws IOException
@@ -80,13 +82,17 @@ public class HPhase1 {
 			if (W)
 			{
 				String[] values = value.toString().split("\t");
-				context.write(new IntAndIdWritable(values[0],'W'), new Text(values[1]) );
+				GenericWritablePhase1 gw = new GenericWritablePhase1();
+				gw.set(new MatrixVector(new Text(values[1])));
+				context.write(new IntAndIdWritable(values[0],'W'), gw );
 			}
 			else  /* The sparse element must be emitted */
 			{
 				SparseElement se = new SparseElement(value);
 				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-				context.write(new IntAndIdWritable(se.getRow(),'a'), new Text(sve.toString()));
+				GenericWritablePhase1 gw = new GenericWritablePhase1();
+				gw.set(sve);
+				context.write(new IntAndIdWritable(se.getRow(),'a'), gw);
 			}
 		}
 //lower case is usefull for the ordering of the key
@@ -154,40 +160,34 @@ public class HPhase1 {
 	    }
 	  }
 
-	public static class MyReducer extends Reducer<IntAndIdWritable, Text, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, GenericWritablePhase1, IntWritable, MatrixVector> {
 
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<GenericWritablePhase1> values, Context context) throws IOException, InterruptedException
 		{
                         System.out.println("REDUCE KEY:" +key);
-			/* The array contains the the row vector once the w row vector is read */
-			//double[] dValues = null;
-			MatrixVector mv;
+			
+			MatrixVector mv = null,temp = null;
 
-			Text val;
+			SparseVectorElement val = null;
 
-			Iterator<Text> iter = values.iterator();
+			Iterator<GenericWritablePhase1> iter = values.iterator();
 
 			if(iter.hasNext())
 			{
-				val = iter.next();
-				System.out.println("VALUE:"+val);
+				temp = (MatrixVector) iter.next().get();
+				mv = new MatrixVector(temp.getNumberOfElement(), temp.getValues().clone());
+				System.out.println("VETTORE: "+mv.toString());
 
-				mv = MatrixVector.parseLine(val.toString());
-				//dValues = mv.getValues();
 			}
-			else throw new IOException("It shouldn't be never verified");
-
 			while (iter.hasNext())
 			{
-				val = iter.next();
+				val = (SparseVectorElement) iter.next().get();
 
-				SparseVectorElement sve = SparseVectorElement.parseLine(val.toString());
-
-				if (sve.getValue() != 0.0)
+				if (val.getValue() != 0.0)
 				{
-					MatrixVector mvEmit =  mv.ScalarProduct(sve.getValue());
-					context.write(new IntWritable(sve.getCoordinate()), mvEmit);
+					MatrixVector mvEmit =  mv.ScalarProduct(val.getValue());
+					context.write(new IntWritable(val.getCoordinate()), mvEmit);
 				}
 			}
 		}
@@ -215,7 +215,7 @@ public class HPhase1 {
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
-		job.setMapOutputValueClass(Text.class);
+		job.setMapOutputValueClass(GenericWritablePhase1.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(MatrixVector.class);
 
