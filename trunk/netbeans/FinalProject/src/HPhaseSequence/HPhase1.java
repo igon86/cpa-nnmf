@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -81,18 +82,13 @@ public class HPhase1 {
 
 			if (W)
 			{
-				String[] values = value.toString().split("\t");
-				GenericWritablePhase1 gw = new GenericWritablePhase1();
-				gw.set(new MatrixVector(new Text(values[1])));
-				context.write(new IntAndIdWritable(values[0],'W'), gw );
+				
+				context.write(new IntAndIdWritable(key.get(),'W'), value );
 			}
 			else  /* The sparse element must be emitted */
 			{
-				SparseElement se = new SparseElement(value);
-				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-				GenericWritablePhase1 gw = new GenericWritablePhase1();
-				gw.set(sve);
-				context.write(new IntAndIdWritable(se.getRow(),'a'), gw);
+
+				context.write(new IntAndIdWritable(key.get(),'a'), value);
 			}
 		}
 //lower case is usefull for the ordering of the key
@@ -183,7 +179,7 @@ public class HPhase1 {
 			while (iter.hasNext())
 			{
 				val = (SparseVectorElement) iter.next().get();
-
+				System.out.println("SPARSE ELEMENT" + val.toString());
 				if (val.getValue() != 0.0)
 				{
 					MatrixVector mvEmit =  mv.ScalarProduct(val.getValue());
@@ -221,6 +217,8 @@ public class HPhase1 {
 
 		//job.setPartitionerClass(FirstPartitioner.class);
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
+
+		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		// Testing Job Options
 		job.setNumReduceTasks(2);

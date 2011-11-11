@@ -25,7 +25,7 @@ public class TextToGSequenceSparseElementTranslator
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 			SparseElement se = SparseElement.parseLine(value.toString());
-			SparseVectorElement sve = new SparseVectorElement(se.getRow(), se.getValue());
+			SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
 			GenericWritablePhase1 gw = new GenericWritablePhase1();
 			gw.set(sve);
 			context.write(new IntWritable(se.getRow()), gw);
