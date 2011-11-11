@@ -22,7 +22,7 @@ import util.*;
  */
 public class HPhase2{
 
-	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
 
 		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
 		{
@@ -41,8 +41,9 @@ public class HPhase2{
 				mv = iterator.next();
 				result.inPlaceSum(mv);
 			}
-
-			context.write(key,result);
+			GenericWritablePhase1 out = new GenericWritablePhase1();
+			out.set(result);
+			context.write(key,out);
 		}
 	}
 
@@ -70,7 +71,7 @@ public class HPhase2{
 		//job.setMapOutputKeyClass(IntWritable.class);
 		//job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(GenericWritablePhase1.class);
 		
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);

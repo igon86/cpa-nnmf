@@ -13,12 +13,16 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileRecordReader;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -29,9 +33,9 @@ import util.*;
 public class HPhase4 {
 
     /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixVector> {
+    public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntWritable, GenericWritablePhase1> {
 
-        private static MatrixMatrix WW;
+        private static MatrixMatrix WW = new MatrixMatrix();
 
         protected void setup(Context context) throws IOException
 		{
@@ -43,7 +47,9 @@ public class HPhase4 {
                 FileSystem fs = FileSystem.get(conf);
                 //creo il path dei file esterni
                 Path inFile = new Path(otherFiles);
-		SequenceFile
+		SequenceFile.Reader sfr = new SequenceFile.Reader(fs, inFile, conf);
+		sfr.next(NullWritable.get(), WW);
+		/*
                 FSDataInputStream in = fs.open(inFile);
                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
@@ -60,18 +66,22 @@ public class HPhase4 {
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
                 WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
+		 **/
 		System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
+		
             }
 
         }
 
-        public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
+        public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
-
-			System.out.println("MI ARRIVA STO VETTORE: "+value.toString());
-			MatrixVector out = MatrixMatrix.vectorMul(WW,value);
+			MatrixVector mv = (MatrixVector) value.get();
+			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
+			MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
 			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
-			context.write(key,out);
+			GenericWritablePhase1 gw = new GenericWritablePhase1();
+			gw.set(out);
+			context.write(key,gw);
 
         }
     }
@@ -94,7 +104,7 @@ public class HPhase4 {
         job.setMapperClass(MyMapper.class);
 	
         job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(MatrixVector.class);
+        job.setOutputValueClass(GenericWritablePhase1.class);
 
 	job.setInputFormatClass(SequenceFileInputFormat.class);
 	job.setOutputFormatClass(SequenceFileOutputFormat.class);

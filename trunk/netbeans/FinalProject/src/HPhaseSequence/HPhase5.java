@@ -28,7 +28,7 @@ import util.*;
 public class HPhase5 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntAndIdWritable, MatrixVector> {
 
 		char matrixId;
 		@Override
@@ -40,16 +40,15 @@ public class HPhase5 {
 		}
 
 		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
 			System.out.println("map della fase 5 VALUE" +value.toString());
 			//if(value.toString().trim().length() != 0){ //this problem must be solved
-			    String[] values = value.toString().split("\t");
-			    int column = Integer.parseInt(values[0]);
+			//    String[] values = value.toString().split("\t");
+			//    int column = Integer.parseInt(values[0]);
 
-			    MatrixVector out = new MatrixVector(new Text(values[1]));
-
-			    context.write(new IntAndIdWritable(column,matrixId), out);
+			//    MatrixVector out = new MatrixVector(new Text(values[1]));
+			    context.write(new IntAndIdWritable(key.get(),matrixId), (MatrixVector) value.get());
 			//}
 		}
 
@@ -58,7 +57,7 @@ public class HPhase5 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
 
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
@@ -86,7 +85,9 @@ public class HPhase5 {
 			else{
 			    vectors[0].inPlacePointMul(vectors[1]);
 			    vectors[0].inPlacePointDiv(vectors[2]);
-			    context.write(new IntWritable(key.get()), vectors[0]);
+			    GenericWritablePhase1 gw = new GenericWritablePhase1();
+			    gw.set(vectors[0]);
+			    context.write(new IntWritable(key.get()), gw);
 			}
 			
 		}
@@ -119,7 +120,7 @@ public class HPhase5 {
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
 		job.setMapOutputValueClass(MatrixVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(GenericWritablePhase1.class);
 
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 

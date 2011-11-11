@@ -13,19 +13,22 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import util.GenericWritablePhase1;
 import util.SparseElement;
 import util.SparseVectorElement;
 
-public class TextToSequenceSparseElementTranslator
+public class TextToGSequenceSparseElementTranslator
 {
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, SparseVectorElement> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, GenericWritablePhase1> {
 
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 			SparseElement se = SparseElement.parseLine(value.toString());
 			SparseVectorElement sve = new SparseVectorElement(se.getRow(), se.getValue());
-			context.write(new IntWritable(se.getRow()), sve);
+			GenericWritablePhase1 gw = new GenericWritablePhase1();
+			gw.set(sve);
+			context.write(new IntWritable(se.getRow()), gw);
 		}
 	}
 
@@ -46,13 +49,13 @@ public class TextToSequenceSparseElementTranslator
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "Translator from Text to Sequence for the Sparse Element");
-		job.setJarByClass(TextToSequenceSparseElementTranslator.class);
+		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
 
 		job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(SparseVectorElement.class);
+		job.setOutputValueClass(GenericWritablePhase1.class);
 
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
