@@ -27,7 +27,9 @@ public class TextToGSequenceMatrixWHTranslator
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, GenericWritablePhase1> {
-
+		protected void setup(Context context){
+		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
@@ -45,7 +47,7 @@ public class TextToGSequenceMatrixWHTranslator
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 2)
+		if(args.length != 3)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");
@@ -54,7 +56,7 @@ public class TextToGSequenceMatrixWHTranslator
 		}
 
 		Configuration conf = new Configuration();
-
+		conf.setInt("elementsNumber", Integer.parseInt(args[2]));
 		Job job = new Job(conf, "Translator from Text to Sequence for the H/W Matrix");
 		job.setJarByClass(TextToSequenceMatrixWHTranslator.class);
 		job.setMapperClass(MyMapper.class);

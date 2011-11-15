@@ -9,11 +9,15 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class MatrixVector implements WritableComparable<MatrixVector> {
 
-    private int elementsNumber;
+    private static int elementsNumber = 0;
     protected double[] value;
 
+    public static void setElementsNumber(int value){
+	elementsNumber = value;
+    }
+
     public MatrixVector(int element_number, double[] elements) {
-	this.elementsNumber = element_number;
+	//this.elementsNumber = element_number;
 	this.value = elements;
     }
 
@@ -108,7 +112,8 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 
     @Override
     public void readFields(DataInput arg0) throws IOException {
-	this.elementsNumber = arg0.readInt();
+	//this.elementsNumber = arg0.readInt();
+	if (elementsNumber == 0) throw new IOException("fail read fields");
 	this.value = new double[this.elementsNumber];
 	for (int i = 0; i < this.elementsNumber; i++) {
 	    this.value[i] = arg0.readDouble();
@@ -117,7 +122,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 
     @Override
     public void write(DataOutput arg0) throws IOException {
-	arg0.writeInt(this.elementsNumber);
+	//arg0.writeInt(this.elementsNumber);
 	for (int i = 0; i < this.elementsNumber; i++) {
 	    arg0.writeDouble(this.value[i]);
 	}
