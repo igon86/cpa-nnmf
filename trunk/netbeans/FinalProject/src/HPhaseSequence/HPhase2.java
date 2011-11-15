@@ -75,6 +75,8 @@ public class HPhase2{
 		
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
+		job.setCombinerClass(MyReducer.class);
 		// Testing Job Options
 		job.setNumReduceTasks(2);
 		
