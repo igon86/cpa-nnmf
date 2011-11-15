@@ -26,7 +26,10 @@ public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, NullWritable, MatrixMatrix> {
-
+	@Override
+		protected void setup(Context context){
+			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
@@ -45,7 +48,10 @@ public class HPhase3 {
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
 	public static class MyReducer extends Reducer<NullWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
-
+	@Override
+		protected void setup(Context context){
+			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void reduce(NullWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
 		{
@@ -83,7 +89,7 @@ public class HPhase3 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 2)
+		if(args.length != 3)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: W files directories");
@@ -92,7 +98,7 @@ public class HPhase3 {
 		}
 
 		Configuration conf = new Configuration();
-
+		conf.setInt("elementsNumber", Integer.parseInt(args[2]));
 		Job job = new Job(conf, "MapRed Step3");
 		job.setJarByClass(HPhase3.class);
 		job.setMapperClass(MyMapper.class);

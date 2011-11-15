@@ -34,6 +34,8 @@ public class HPhase5 {
 		@Override
 		protected void setup(Context context) throws IOException
 		{
+		    			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
 			matrixId = folderName.charAt(0);
@@ -58,7 +60,10 @@ public class HPhase5 {
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
 	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
-
+	@Override
+		protected void setup(Context context){
+			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
 		{
@@ -99,7 +104,7 @@ public class HPhase5 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 4)
+		if(args.length != 5)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second/Third Parameter: "
@@ -109,6 +114,7 @@ public class HPhase5 {
 		}
 
 		Configuration conf = new Configuration();
+		conf.setInt("elementsNumber", Integer.parseInt(args[4]));
 
 		Job job = new Job(conf, "MapRed Step5");
 		job.setJarByClass(HPhase5.class);

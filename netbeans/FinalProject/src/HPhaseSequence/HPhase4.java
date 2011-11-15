@@ -30,6 +30,8 @@ public class HPhase4 {
 
         protected void setup(Context context) throws IOException
 		{
+	    			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+
             // MI PRENDO LA MATRICE DAL FILE ESTERNO
             Configuration conf = context.getConfiguration();
             String otherFiles = conf.get("otherFiles", null);
@@ -99,7 +101,7 @@ public class HPhase4 {
 
     public static void main(String[] args) throws Exception 
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: H files directories");
@@ -109,6 +111,7 @@ public class HPhase4 {
 		}
 
         Configuration conf = new Configuration();
+	conf.setInt("elementsNumber", Integer.parseInt(args[3]));
         conf.set("otherFiles", args[1]);
         Job job = new Job(conf, "MapRed Step4");
         job.setJarByClass(HPhase4.class);
