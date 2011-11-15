@@ -5,22 +5,22 @@
 2) Need to adjust the serialization/deserialiazation & printing/parsing
   of the Matrix Vector with the new syntax (row/column number). [DONE]
   ===>> SequenceOutputFormat can be used for intermedite data [DONE]
-	All the MapReduce Phase must work with codified data
-	===>> Introduce the MAP-REDUCE internal representation
-		===>> Create MAP_REDUCE phase to convert from readable format to codified one
-		===>> Create MAP_REDUCE phase to convert from codified format to readable one
+	All the MapReduce Phase must work with codified data [DONE]
+	===>> Introduce the MAP-REDUCE internal representation [DONE]
+		===>> Create MAP_REDUCE phase to convert from readable format to codified one [DONE]
+		===>> Create MAP_REDUCE phase to convert from codified format to readable one [DONE]
   ===>> Adding the context variable k.
 
-* Need to factorize all the phase to procede towards WPhase
+3) The C Phase4's parameter need to be invoked as a file name,
+  instead of his directory
+
+4) Need to factorize all the phase to procede towards WPhase
+
+5) Test the project in distributed manner
 
 * Distributed Cache instead of reading from distributed File System
 
 Other Things:
-
-* The C Phase4's parameter need to be invoked as a file name,
-  instead of his directory
-
-* All the test must be added (number of parameters control, etc)
 
 * The X resulting matrix changes the effective size of the X should have Matrix:
 	===> The problems arise when we are computing the Phase 5

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -35,9 +36,29 @@ public class HPhase4 {
             if (otherFiles != null)
 	    {
                 FileSystem fs = FileSystem.get(conf);
+
+				Path inFile = new Path(otherFiles);
+
+				FileStatus fileStatus = fs.getFileStatus(inFile);
+				if(!fileStatus.isDir())
+					throw new IOException("The file isn't a directory");
+
+				FileStatus[] list = fs.listStatus(inFile);
+				Path cMatrix = null;
+				for(int i=0;i<list.length;i++)
+				{
+					cMatrix = list[i].getPath();
+					if(fs.getFileStatus(cMatrix).isDir())
+						cMatrix = null;
+					else break;
+				}
+
+				if(cMatrix == null)
+					throw new IOException("The directory doesn't contain the data file");
+
                 //creo il path dei file esterni
-                Path inFile = new Path(otherFiles);
-		SequenceFile.Reader sfr = new SequenceFile.Reader(fs, inFile, conf);
+        //        Path inFile = new Path(otherFiles);
+		SequenceFile.Reader sfr = new SequenceFile.Reader(fs, cMatrix, conf);
 		sfr.next(NullWritable.get(), WW);
 		/*
                 FSDataInputStream in = fs.open(inFile);
