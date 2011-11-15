@@ -22,23 +22,38 @@ import util.*;
  */
 public class HPhase2{
 
-	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
+	public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
 
-		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
+		@Override
+		public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
+		{
+			/**wraps the matrix vector */
+			GenericWritablePhase1 out = new GenericWritablePhase1();
+			out.set(value);
+
+			context.write(key, out);
+
+		}
+
+	}
+
+	public static class MyReducer extends Reducer<IntWritable, GenericWritablePhase1, IntWritable, GenericWritablePhase1> {
+
+		public void reduce(IntWritable key, Iterable<GenericWritablePhase1> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
 			MatrixVector mv,result = null;
 
-			Iterator<MatrixVector> iterator = values.iterator();
+			Iterator<GenericWritablePhase1> iterator = values.iterator();
 			if(iterator.hasNext())
 			{
-				mv = iterator.next();
+				mv = (MatrixVector) iterator.next().get();
 				result = new MatrixVector(mv.getNumberOfElement(),mv.getValues().clone());
 			}
 
 			while(iterator.hasNext())
 			{
-				mv = iterator.next();
+				mv = (MatrixVector) iterator.next().get();
 				result.inPlaceSum(mv);
 			}
 			GenericWritablePhase1 out = new GenericWritablePhase1();
@@ -65,11 +80,11 @@ public class HPhase2{
 
 		Job job = new Job(conf, "MapRed Step2");
 		job.setJarByClass(HPhase2.class);
-		//job.setMapperClass(MyMapper.class);
+		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntWritable.class);
-		job.setMapOutputValueClass(MatrixVector.class);
+		job.setMapOutputValueClass(GenericWritablePhase1.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericWritablePhase1.class);
 		

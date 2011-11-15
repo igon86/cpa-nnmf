@@ -25,7 +25,7 @@ import util.*;
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, NullWritable, MatrixMatrix> {
 
 		@Override
 		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
@@ -35,7 +35,7 @@ public class HPhase3 {
 
 			System.out.println("External Prod = "+result.toString());
 
-			context.write(new IntWritable(0), result);
+			context.write(NullWritable.get(), result);
 
 		}
 
@@ -44,10 +44,10 @@ public class HPhase3 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
+	public static class MyReducer extends Reducer<NullWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
 
 		@Override
-		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
+		public void reduce(NullWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
 		{
 			MatrixMatrix result;
 
@@ -102,7 +102,7 @@ public class HPhase3 {
 
 		// Testing Job Options
 		//job.setNumReduceTasks(0);
-		job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputKeyClass(NullWritable.class);
 		job.setMapOutputValueClass(MatrixMatrix.class);
 		job.setOutputKeyClass(NullWritable.class);
 		job.setOutputValueClass(MatrixMatrix.class);

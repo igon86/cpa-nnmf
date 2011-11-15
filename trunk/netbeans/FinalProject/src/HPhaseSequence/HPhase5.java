@@ -128,7 +128,7 @@ public class HPhase5 {
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		// Testing Job Options
-
+		job.setNumReduceTasks(2);
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileInputFormat.addInputPath(job, new Path(args[1]));
