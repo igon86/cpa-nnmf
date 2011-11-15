@@ -107,6 +107,7 @@ public class HPhase4 {
 			System.err.println("First Parameter: H files directories");
 			System.err.println("Second Parameter: HPhase3 output file");
 			System.err.println("Third Parameter: Output directory");
+			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 

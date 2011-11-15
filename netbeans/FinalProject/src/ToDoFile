@@ -12,11 +12,13 @@
   ===>> Adding the context variable k.
 
 3) The C Phase4's parameter need to be invoked as a file name,
-  instead of his directory
+  instead of his directory [DONE]
 
-4) Need to factorize all the phase to procede towards WPhase
+4) Set the combiner Class to sppeed up the computations.
 
-5) Test the project in distributed manner
+5) Need to factorize all the phase to procede towards WPhase
+
+6) Test the project in distributed manner
 
 * Distributed Cache instead of reading from distributed File System
 
