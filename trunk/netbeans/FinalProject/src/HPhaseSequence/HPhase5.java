@@ -110,6 +110,7 @@ public class HPhase5 {
 			System.err.println("First/Second/Third Parameter: "
 					+ "H/X/Y files directories");
 			System.err.println("Third Parameter: Output directory");
+			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 

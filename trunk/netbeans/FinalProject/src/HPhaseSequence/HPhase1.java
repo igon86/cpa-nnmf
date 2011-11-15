@@ -25,7 +25,6 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import util.GenericWritablePhase1;
 import util.IntAndIdWritable;
 import util.MatrixVector;
-import util.SparseElement;
 import util.SparseVectorElement;
 
 
@@ -204,6 +203,7 @@ public class HPhase1 {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
 			System.err.println("Third Parameter: Output directory");
+			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 

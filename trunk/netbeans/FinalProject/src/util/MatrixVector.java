@@ -21,7 +21,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	this.value = elements;
     }
 
-    public MatrixVector(Text s) {
+    public MatrixVector(Text s) throws IOException {
 	parseLine(s.toString(), this);
     }
 
@@ -29,7 +29,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	;
     }
 
-    static public MatrixVector parseLine(String s) {
+    static public MatrixVector parseLine(String s) throws IOException {
 	MatrixVector mv = new MatrixVector();
 	parseLine(s, mv);
 	return mv;
@@ -39,24 +39,24 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
     // a vector (row or column) per line
     // no new line at the end of a file
 
-    static private void parseLine(String s, MatrixVector mv) {
+    static private void parseLine(String s, MatrixVector mv) throws IOException {
+
+	if (elementsNumber == 0) throw new IOException("fail read fields");
 
 	try {
-	    String[] splitted = s.split("#");
+
+		mv.value = new double[elementsNumber];
+
+		String[] splitted = s.split("#");
 	    System.out.println("stringa partizionata");
 
-	    mv.elementsNumber = new Integer(splitted[0]);
-	    mv.value = new double[mv.elementsNumber];
-	    System.out.println("Dimensione presa");
-
 	    for (int i = 0; i < mv.elementsNumber && i <= splitted.length; i++) {
-		mv.value[i] = new Double(splitted[i + 1]);
+		mv.value[i] = new Double(splitted[i]);
 		System.out.println("Ho acquisito il " + i + "-esimo parametro");
 	    }
 	    System.out.println("Valori del vettore presi");
 	} catch (NumberFormatException e) {
 	    System.out.println("Input Error reading SparseElement Value" + s);
-	    mv.elementsNumber = 0;
 	    mv.value = null;
 	}
     }
@@ -144,11 +144,13 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 
     public String toString() {
 	System.out.println("SONO NELLA TOSTRING DI MATRIXVECTOR");
-	String tmp = "" + this.elementsNumber;
+
+	String tmp = ""+this.value[0];
 	StringBuilder stringBuilder = new StringBuilder(tmp);
 
-	for (int i = 0; i < this.elementsNumber; i++) {
-	    stringBuilder.append("#" + this.value[i]);
+	for (int i = 1; i < this.elementsNumber; i++) {
+	    stringBuilder.append("#");
+		stringBuilder.append(this.value[i]);
 	}
 
 	//stringBuilder.append('\n');

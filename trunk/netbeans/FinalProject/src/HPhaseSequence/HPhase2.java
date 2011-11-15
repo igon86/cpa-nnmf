@@ -77,6 +77,7 @@ public class HPhase2{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
+			System.err.println("Third Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 
