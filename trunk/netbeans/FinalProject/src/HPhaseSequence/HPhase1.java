@@ -45,6 +45,8 @@ public class HPhase1 {
 		protected void setup(Context context) throws IOException
 		{
 
+		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
 
@@ -157,7 +159,9 @@ public class HPhase1 {
 	  }
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, GenericWritablePhase1, IntWritable, MatrixVector> {
-
+		protected void setup(Context context){
+		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<GenericWritablePhase1> values, Context context) throws IOException, InterruptedException
 		{
@@ -195,7 +199,7 @@ public class HPhase1 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
@@ -204,6 +208,7 @@ public class HPhase1 {
 		}
 
 		Configuration conf = new Configuration();
+		conf.setInt("elementsNumber", Integer.parseInt(args[3]));
 
 		Job job = new Job(conf, "MapRed Step1");
 		job.setJarByClass(HPhase1.class);
