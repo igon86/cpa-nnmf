@@ -8,7 +8,10 @@ package util;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 
 /**
@@ -67,6 +70,7 @@ public class IntAndIdWritable extends IntWritable {
 	@Override
   public int compareTo(Object o)
   {
+	     System.out.println("Sono nella compare to normale");
 	int compare_value = super.compareTo(o);
 
 	return (compare_value==0)? this.id - ((IntAndIdWritable)o).id : compare_value;
@@ -78,9 +82,55 @@ public class IntAndIdWritable extends IntWritable {
   {
     return super.toString()+"-"+this.id;
   }
-    // eredità il comparatore da intWritable: in questo modo riesce a fare il grouping
-	// funziona perche' l'int writable e' stato scritto per primo
-    //static{
-    //	    WritableComparator.define(IntAndIdWritable.class, new IntWritable.Comparator());
-    //}
+
+
+    /** A Comparator optimized for IntWritable. */
+  public static class Comparator extends WritableComparator {
+    public Comparator() {
+      super(IntAndIdWritable.class);
+    }
+
+    public int compare(byte[] b1, int s1, int l1,
+                       byte[] b2, int s2, int l2) {
+	      System.out.println("SONO nella compare ottimizzata: ");
+
+      int thisValue = readInt(b1, s1);
+      int thatValue = readInt(b2, s2);
+      System.out.println("la lugnhezza è " +l1 + " "+l2);
+      /**
+      DataInputBuffer buffer = new DataInputBuffer();
+      WritableComparable t1 = new IntAndIdWritable();
+      WritableComparable t2 = new IntAndIdWritable();
+      WritableComparable t3 = new Text();
+      WritableComparable t4 = new Text();
+
+      try {
+                    buffer.reset(b1, s1, l1);
+                    t1.readFields(buffer);
+		    //buffer.reset(b1, s1+l1-1, 1);
+		    //t3.readFields(buffer);
+                    System.out.println("ARG1: "+t1.toString());
+		    System.out.println("INT1:" +thisValue);
+                    buffer.reset(b2, s2, l2);
+                    t2.readFields(buffer);
+		    //buffer.reset(b2, s2+21-1, 1);
+		    //t4.readFields(buffer);
+		    System.out.println("ARG2: "+t2.toString());
+                    System.out.println("INT2: "+thatValue);
+
+      } catch (IOException e) {
+                    System.out.println("col cazzo che ha funzionato");
+                    throw new RuntimeException(e);
+      }
+      */
+      // QUI i char sono in UTF quindi occupano 2 bytes
+      int confrontoChar = compareBytes(b1, s1+l1-2, 2 , b2, s2+l2 -2, 2);
+      System.out.println("Il confronto char e: " +confrontoChar);
+      return (thisValue<thatValue ? -1 : (thisValue==thatValue ? confrontoChar : 1));
+    }
+  }
+
+  static {                                        // register this comparator
+    WritableComparator.define(IntAndIdWritable.class, new Comparator());
+  }
 }
