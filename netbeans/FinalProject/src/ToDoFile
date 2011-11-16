@@ -14,7 +14,7 @@
 3) The C Phase4's parameter need to be invoked as a file name,
   instead of his directory [DONE]
 
-4) Set the combiner Class to sppeed up the computations.
+4) Set the combiner Class to sppeed up the computations. [DONE]
 
 5) Need to factorize all the phase to procede towards WPhase
 
