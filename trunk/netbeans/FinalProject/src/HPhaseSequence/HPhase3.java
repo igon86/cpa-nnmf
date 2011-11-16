@@ -78,7 +78,7 @@ public class HPhase3 {
 				    throw new IOException("ERRORE nella somma di matrici");
 				}
 			}
-
+			System.out.println(result.toString());
 			context.write(NullWritable.get(), result);
 		}
 	}
