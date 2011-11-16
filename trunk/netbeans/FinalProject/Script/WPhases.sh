@@ -31,18 +31,18 @@ K_DIM=$5
 X_PARTIAL=X_PARTIAL
 X_FINAL=X_FINAL
 C_DATA=C_DATA
-H_PRIME=H_PRIME
+W_PRIME=W_PRIME
 
 
 ###### STARTING H PHASE ######
 
 ###### COMPUTING X ######
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase1 $A_DATA $W_DATA $X_PARTIAL $K_DIM
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase2 $X_PARTIAL $X_FINAL $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase1 $A_DATA $H_DATA $X_PARTIAL $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase2 $X_PARTIAL $X_FINAL $K_DIM
 
 ###### COMPUTING Y ######
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase3 $W_DATA $C_DATA $K_DIM
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase4 $H_DATA $C_DATA $Y_FINAL $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase3 $H_DATA $C_DATA $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase4 $W_DATA $C_DATA $Y_FINAL $K_DIM
 
-###### COMPUTING THE UPDATED MATRIX H ######
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase5 $H_DATA $X_FINAL $Y_FINAL $H_PRIME $K_DIM
+###### COMPUTING THE UPDATED MATRIX W ######
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase5 $W_DATA $X_FINAL $Y_FINAL $W_PRIME $K_DIM
