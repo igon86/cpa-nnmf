@@ -34,7 +34,7 @@ public class HPhase5 {
 		@Override
 		protected void setup(Context context) throws IOException
 		{
-		    			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    	MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 

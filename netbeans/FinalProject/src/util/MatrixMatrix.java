@@ -193,10 +193,30 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 	return ret;
     }
 
+    public static MatrixVector leftVectorMul(MatrixMatrix m ,MatrixVector v){
+	MatrixVector ret = new MatrixVector(m.rowNumber, new double[m.rowNumber]);
+	for (int i = 0; i < m.rowNumber; i++) {
+	    ret.value[i] = m.getColumnVector(i).internalProduct(v);
+	}
+	return ret;
+    }
+
+    private MatrixVector getColumnVector(int i){
+	double[] out = new double[this.columnNumber];
+	for (int j = 0; j < out.length;j++){
+	    out[i] = this.value[j][i];
+	}
+	MatrixVector mv = new MatrixVector(out.length, out);
+	System.out.println("il vettore "+i+"di C e: "+mv.toString());
+	return mv;
+    }
+
     private MatrixVector getRowVector(int i) {
 
 	return new MatrixVector(this.value[i].length, this.value[i]);
     }
+
+
 
     public void inPlacePointMul(MatrixMatrix m) throws IOException {
 	if (this.rowNumber != m.rowNumber || this.columnNumber != m.columnNumber) {
