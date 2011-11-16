@@ -23,17 +23,24 @@ then
 	exit
 fi
 
+echo 1#$1
+echo 2#$2
+echo 3#$3
+echo 4#$4
+echo 5#$5
+echo 6#$6
+
 ###### COPYING THE A DATA ######
 ${HADOOP_HOME}/bin/hadoop fs -rmr $2
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $2
-${HADOOP_HOME}/bin/hadoop fs -cp ${1}/* ${2}
+${HADOOP_HOME}/bin/hadoop fs -put ${1}/*.data ${2}/
 
 ###### COPYING THE H DATA ######
 ${HADOOP_HOME}/bin/hadoop fs -rmr $4
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $4
-${HADOOP_HOME}/bin/hadoop fs -cp ${3}/* ${4}
+${HADOOP_HOME}/bin/hadoop fs -put ${3}/*.data ${4}/
 
 ###### COPYING THE W DATA ######
 ${HADOOP_HOME}/bin/hadoop fs -rmr $6
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $6
-${HADOOP_HOME}/bin/hadoop fs -cp ${5}/* ${6}
+${HADOOP_HOME}/bin/hadoop fs -put ${5}/*.data ${6}/
