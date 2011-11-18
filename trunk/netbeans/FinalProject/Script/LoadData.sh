@@ -31,16 +31,16 @@ echo 5#$5
 echo 6#$6
 
 ###### COPYING THE A DATA ######
-${HADOOP_HOME}/bin/hadoop fs -rmr $2
+#${HADOOP_HOME}/bin/hadoop fs -rmr $2
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $2
 ${HADOOP_HOME}/bin/hadoop fs -put ${1}/*.data ${2}/
 
 ###### COPYING THE H DATA ######
-${HADOOP_HOME}/bin/hadoop fs -rmr $4
+#${HADOOP_HOME}/bin/hadoop fs -rmr $4
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $4
 ${HADOOP_HOME}/bin/hadoop fs -put ${3}/*.data ${4}/
 
 ###### COPYING THE W DATA ######
-${HADOOP_HOME}/bin/hadoop fs -rmr $6
+#${HADOOP_HOME}/bin/hadoop fs -rmr $6
 ${HADOOP_HOME}/bin/hadoop fs -mkdir $6
 ${HADOOP_HOME}/bin/hadoop fs -put ${5}/*.data ${6}/
