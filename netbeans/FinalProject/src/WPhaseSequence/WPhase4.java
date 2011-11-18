@@ -1,10 +1,7 @@
 
 package WPhaseSequence;
 
-
-import HPhaseSequence.*;
 import java.io.IOException;
-
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -29,6 +26,7 @@ public class WPhase4 {
 
         private static MatrixMatrix WW = new MatrixMatrix();
 
+		@Override
         protected void setup(Context context) throws IOException
 		{
 	    			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
@@ -87,6 +85,7 @@ public class WPhase4 {
 
         }
 
+		@Override
         public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
 		{
 			MatrixVector mv = (MatrixVector) value.get();

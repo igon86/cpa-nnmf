@@ -5,14 +5,9 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
@@ -84,6 +79,7 @@ public class WPhase1 {
 
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, GenericWritablePhase1, IntWritable, MatrixVector> {
+		@Override
 		protected void setup(Context context){
 		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
