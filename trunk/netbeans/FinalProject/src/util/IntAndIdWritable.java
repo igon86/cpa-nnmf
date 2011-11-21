@@ -8,10 +8,7 @@ package util;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 
 /**
@@ -20,6 +17,8 @@ import org.apache.hadoop.io.WritableComparator;
  */
 public class IntAndIdWritable extends IntWritable {
     private char id;
+
+    private static String debug= System.getProperty("DEBUG", "false");
 
     public IntAndIdWritable()
     {
@@ -70,7 +69,7 @@ public class IntAndIdWritable extends IntWritable {
 	@Override
   public int compareTo(Object o)
   {
-	     System.out.println("Sono nella compare to normale");
+	System.out.println("IntAndIdWritable. Sono nella compareTo: "+this.toString() + " "+o.toString());
 	int compare_value = super.compareTo(o);
 
 	return (compare_value==0)? this.id - ((IntAndIdWritable)o).id : compare_value;
@@ -92,11 +91,10 @@ public class IntAndIdWritable extends IntWritable {
 
     public int compare(byte[] b1, int s1, int l1,
                        byte[] b2, int s2, int l2) {
-	      System.out.println("SONO nella compare ottimizzata: ");
+	System.out.println("SONO nella compareBYTES: ");
 
       int thisValue = readInt(b1, s1);
       int thatValue = readInt(b2, s2);
-      System.out.println("la lugnhezza è " +l1 + " "+l2);
       /**
       DataInputBuffer buffer = new DataInputBuffer();
       WritableComparable t1 = new IntAndIdWritable();
@@ -119,13 +117,12 @@ public class IntAndIdWritable extends IntWritable {
                     System.out.println("INT2: "+thatValue);
 
       } catch (IOException e) {
-                    System.out.println("col cazzo che ha funzionato");
+                    System.out.println("problem in debugging IntAndIdWritable compare bytes");
                     throw new RuntimeException(e);
       }
       */
       // QUI i char sono in UTF quindi occupano 2 bytes
       int confrontoChar = compareBytes(b1, s1+l1-2, 2 , b2, s2+l2 -2, 2);
-      System.out.println("Il confronto char e: " +confrontoChar);
       return (thisValue<thatValue ? -1 : (thisValue==thatValue ? confrontoChar : 1));
     }
   }
