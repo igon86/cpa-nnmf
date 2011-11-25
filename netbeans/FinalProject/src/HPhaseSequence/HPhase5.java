@@ -28,13 +28,13 @@ import util.*;
 public class HPhase5 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntAndIdWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, NMFVector> {
 
 		char matrixId;
 		@Override
 		protected void setup(Context context) throws IOException
 		{
-		    	MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    	NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
@@ -42,7 +42,7 @@ public class HPhase5 {
 		}
 
 		@Override
-		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
 			System.out.println("map della fase 5 VALUE" +value.toString());
 			//if(value.toString().trim().length() != 0){ //this problem must be solved
@@ -50,7 +50,7 @@ public class HPhase5 {
 			//    int column = Integer.parseInt(values[0]);
 
 			//    MatrixVector out = new MatrixVector(new Text(values[1]));
-			    context.write(new IntAndIdWritable(key.get(),matrixId), (MatrixVector) value.get());
+			    context.write(new IntAndIdWritable(key.get(),matrixId), (NMFVector) value.get());
 			//}
 		}
 
@@ -59,25 +59,25 @@ public class HPhase5 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, NMFVector, IntWritable, GenericElement> {
 	@Override
 		protected void setup(Context context){
-			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
 		{
 			// reduce should receive H,X,Y vector exactly in this order AND nothing else
-			MatrixVector[] vectors = new MatrixVector[3];
-			MatrixVector val = null;
+			NMFVector[] vectors = new NMFVector[3];
+			NMFVector val = null;
 
-			Iterator<MatrixVector> iter = values.iterator();
+			Iterator<NMFVector> iter = values.iterator();
 
 			int i = 0;
 			while (iter.hasNext() && i <3)
 			{
 				val = iter.next();
-				vectors[i++] = new MatrixVector(val.getNumberOfElement(), val.getValues().clone());
+				vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
 				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
 				//if (!result.inPlaceSum(val)){
 				//    System.out.println("ERRORE nella somma di matrici");
@@ -90,7 +90,7 @@ public class HPhase5 {
 			else{
 			    vectors[0].inPlacePointMul(vectors[1]);
 			    vectors[0].inPlacePointDiv(vectors[2]);
-			    GenericWritablePhase1 gw = new GenericWritablePhase1();
+			    GenericElement gw = new GenericElement();
 			    gw.set(vectors[0]);
 			    context.write(new IntWritable(key.get()), gw);
 			}
@@ -125,9 +125,9 @@ public class HPhase5 {
 		//job.setNumReduceTasks(2);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
-		job.setMapOutputValueClass(MatrixVector.class);
+		job.setMapOutputValueClass(NMFVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(GenericWritablePhase1.class);
+		job.setOutputValueClass(GenericElement.class);
 
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 

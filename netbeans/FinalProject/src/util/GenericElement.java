@@ -12,11 +12,11 @@ import org.apache.hadoop.io.Writable;
  *
  * @author andrealottarini
  */
-public class GenericWritablePhase1 extends GenericWritable{
+public class GenericElement extends GenericWritable{
 
     private static Class[] CLASSES = {
 	SparseVectorElement.class,
-	MatrixVector.class,
+	NMFVector.class,
     };
 
     @Override

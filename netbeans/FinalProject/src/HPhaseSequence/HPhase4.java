@@ -24,13 +24,13 @@ import util.*;
 public class HPhase4 {
 
     /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntWritable, GenericWritablePhase1> {
+    public static class MyMapper extends Mapper<IntWritable, GenericElement, IntWritable, GenericElement> {
 
-        private static MatrixMatrix WW = new MatrixMatrix();
+        private static NMFMatrix WW = new NMFMatrix();
 
         protected void setup(Context context) throws IOException
 		{
-	    			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+	    			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
             // MI PRENDO LA MATRICE DAL FILE ESTERNO
             Configuration conf = context.getConfiguration();
@@ -86,13 +86,13 @@ public class HPhase4 {
 
         }
 
-        public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
+        public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
-			MatrixVector mv = (MatrixVector) value.get();
+			NMFVector mv = (NMFVector) value.get();
 			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
-			MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
+			NMFVector out = NMFMatrix.vectorMul(WW,mv);
 			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
-			GenericWritablePhase1 gw = new GenericWritablePhase1();
+			GenericElement gw = new GenericElement();
 			gw.set(out);
 			context.write(key,gw);
 
@@ -119,7 +119,7 @@ public class HPhase4 {
         job.setMapperClass(MyMapper.class);
 	
         job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(GenericWritablePhase1.class);
+        job.setOutputValueClass(GenericElement.class);
 
 	job.setInputFormatClass(SequenceFileInputFormat.class);
 	job.setOutputFormatClass(SequenceFileOutputFormat.class);

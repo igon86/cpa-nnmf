@@ -25,16 +25,16 @@ import util.*;
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, NullWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<IntWritable, GenericElement, NullWritable, NMFMatrix> {
 	@Override
 		protected void setup(Context context){
-			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
-			MatrixVector mv = (MatrixVector) value.get();
-			MatrixMatrix result = mv.externalProduct(mv);
+			NMFVector mv = (NMFVector) value.get();
+			NMFMatrix result = mv.externalProduct(mv);
 
 			System.out.println("External Prod = "+result.toString());
 
@@ -47,23 +47,23 @@ public class HPhase3 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<NullWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
+	public static class MyReducer extends Reducer<NullWritable, NMFMatrix, NullWritable, NMFMatrix> {
 	@Override
 		protected void setup(Context context){
-			MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void reduce(NullWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
+		public void reduce(NullWritable key, Iterable<NMFMatrix> values, Context context) throws IOException, InterruptedException
 		{
-			MatrixMatrix result;
+			NMFMatrix result;
 
-			Iterator<MatrixMatrix> iter = values.iterator();
-			MatrixMatrix val;
+			Iterator<NMFMatrix> iter = values.iterator();
+			NMFMatrix val;
 
 			if(iter.hasNext())
 			{
 				val = iter.next();
-				result = new MatrixMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
+				result = new NMFMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
 				System.out.println("REDUCE: ho ricevuto: "+result.toString());
 			}
 			else throw new IOException("It shouldn't be never verified");
@@ -110,9 +110,9 @@ public class HPhase3 {
 		// Testing Job Options
 		//job.setNumReduceTasks(0);
 		job.setMapOutputKeyClass(NullWritable.class);
-		job.setMapOutputValueClass(MatrixMatrix.class);
+		job.setMapOutputValueClass(NMFMatrix.class);
 		job.setOutputKeyClass(NullWritable.class);
-		job.setOutputValueClass(MatrixMatrix.class);
+		job.setOutputValueClass(NMFMatrix.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);

@@ -18,21 +18,21 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import util.MatrixVector;
+import util.NMFVector;
 
 
 public class TextToSequenceMatrixWHTranslator
 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFVector> {
 
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 			String[] values = value.toString().split("\t");
 			Integer index = new Integer(values[0]);
-			context.write(new IntWritable(index), MatrixVector.parseLine(values[1]));
+			context.write(new IntWritable(index), NMFVector.parseLine(values[1]));
 		}
 	}
 
@@ -59,7 +59,7 @@ public class TextToSequenceMatrixWHTranslator
 		job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 

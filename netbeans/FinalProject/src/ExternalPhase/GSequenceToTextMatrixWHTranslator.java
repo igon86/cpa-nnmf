@@ -5,7 +5,7 @@
 
 package ExternalPhase;
 
-import util.MatrixVector;
+import util.NMFVector;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -18,19 +18,19 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import util.GenericWritablePhase1;
+import util.GenericElement;
 
 
 public class GSequenceToTextMatrixWHTranslator
 {
-	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntWritable, NMFVector> {
 		protected void setup(Context context){
-		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void map(IntWritable key, GenericWritablePhase1 values, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericElement values, Context context) throws IOException, InterruptedException
 		{
-			context.write(key, (MatrixVector) values.get());
+			context.write(key, (NMFVector) values.get());
 		}
 	}
 
@@ -57,7 +57,7 @@ public class GSequenceToTextMatrixWHTranslator
 		job.setMapperClass(MyMapper.class);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setNumReduceTasks(0);
 

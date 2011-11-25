@@ -25,7 +25,7 @@ import util.*;
 public class HPhase5 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, NMFVector> {
 
 		char matrixId;
 		@Override
@@ -44,7 +44,7 @@ public class HPhase5 {
 			    String[] values = value.toString().split("\t");
 			    int column = Integer.parseInt(values[0]);
 
-			    MatrixVector out = new MatrixVector(new Text(values[1]));
+			    NMFVector out = new NMFVector(new Text(values[1]));
 
 			    context.write(new IntAndIdWritable(column,matrixId), out);
 			//}
@@ -55,22 +55,22 @@ public class HPhase5 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntAndIdWritable, MatrixVector, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, NMFVector, IntWritable, NMFVector> {
 
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
 		{
 			// reduce should receive H,X,Y vector exactly in this order AND nothing else
-			MatrixVector[] vectors = new MatrixVector[3];
-			MatrixVector val = null;
+			NMFVector[] vectors = new NMFVector[3];
+			NMFVector val = null;
 
-			Iterator<MatrixVector> iter = values.iterator();
+			Iterator<NMFVector> iter = values.iterator();
 
 			int i = 0;
 			while (iter.hasNext() && i <3)
 			{
 				val = iter.next();
-				vectors[i++] = new MatrixVector(val.getNumberOfElement(), val.getValues().clone());
+				vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
 				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
 				//if (!result.inPlaceSum(val)){
 				//    System.out.println("ERRORE nella somma di matrici");
@@ -114,9 +114,9 @@ public class HPhase5 {
 		//job.setNumReduceTasks(2);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
-		job.setMapOutputValueClass(MatrixVector.class);
+		job.setMapOutputValueClass(NMFVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 

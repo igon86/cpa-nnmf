@@ -20,7 +20,7 @@ import util.*;
 public class HPhase2{
 
     /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
+    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFVector> {
 
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 	    String[] input = value.toString().split("\t");
@@ -33,23 +33,23 @@ public class HPhase2{
 		System.out.println("Problem parsing the key: "+input[0].trim());
 		throw new IOException(e.toString());
 	    }
-	    context.write(new IntWritable(column), MatrixVector.parseLine(input[1]));
+	    context.write(new IntWritable(column), NMFVector.parseLine(input[1]));
 
 	}
     }
 
-	public static class MyReducer extends Reducer<IntWritable, MatrixVector, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntWritable, NMFVector, IntWritable, NMFVector> {
 
-		public void reduce(IntWritable key, Iterable<MatrixVector> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
-			MatrixVector mv,result = null;
+			NMFVector mv,result = null;
 
-			Iterator<MatrixVector> iterator = values.iterator();
+			Iterator<NMFVector> iterator = values.iterator();
 			if(iterator.hasNext())
 			{
 				mv = iterator.next();
-				result = new MatrixVector(mv.getNumberOfElement(),mv.getValues().clone());
+				result = new NMFVector(mv.getNumberOfElement(),mv.getValues().clone());
 			}
 
 			while(iterator.hasNext())
@@ -84,9 +84,9 @@ public class HPhase2{
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntWritable.class);
-		job.setMapOutputValueClass(MatrixVector.class);
+		job.setMapOutputValueClass(NMFVector.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 
 		// Testing Job Options
 		job.setNumReduceTasks(2);

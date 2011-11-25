@@ -18,25 +18,25 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import util.GenericWritablePhase1;
-import util.MatrixVector;
+import util.GenericElement;
+import util.NMFVector;
 
 
 public class TextToGSequenceMatrixWHTranslator
 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, GenericWritablePhase1> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, GenericElement> {
 		protected void setup(Context context){
-		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
 			String[] values = value.toString().split("\t");
 			Integer index = new Integer(values[0]);
-			GenericWritablePhase1 gw = new GenericWritablePhase1();
-			gw.set(MatrixVector.parseLine(values[1]));
+			GenericElement gw = new GenericElement();
+			gw.set(NMFVector.parseLine(values[1]));
 			context.write(new IntWritable(index),gw );
 		}
 	}
@@ -65,7 +65,7 @@ public class TextToGSequenceMatrixWHTranslator
 		job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(GenericWritablePhase1.class);
+		job.setOutputValueClass(GenericElement.class);
 
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 

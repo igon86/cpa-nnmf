@@ -7,28 +7,28 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
-public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
+public class NMFMatrix implements WritableComparable<NMFMatrix> {
 
     private int rowNumber;
     private int columnNumber;
     private double[][] value;
 
-    public MatrixMatrix(int row_number, int column_number, double[][] elements) {
+    public NMFMatrix(int row_number, int column_number, double[][] elements) {
 	this.rowNumber = row_number;
 	this.columnNumber = column_number;
 	this.value = elements;
     }
 
-    public MatrixMatrix(Text s) {
+    public NMFMatrix(Text s) {
 	parseLine(s.toString(), this);
     }
 
-    public MatrixMatrix() {
+    public NMFMatrix() {
 	;
     }
 
-    static public MatrixMatrix parseLine(String s) {
-	MatrixMatrix mv = new MatrixMatrix();
+    static public NMFMatrix parseLine(String s) {
+	NMFMatrix mv = new NMFMatrix();
 	parseLine(s, mv);
 	return mv;
 
@@ -37,7 +37,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
     // a vector (row or column) per line
     // no new line at the end of a file
 
-    static private void parseLine(String s, MatrixMatrix mv) {
+    static private void parseLine(String s, NMFMatrix mv) {
 
 	try {
 	    String[] splitted = s.split("\t");
@@ -116,7 +116,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
     }
 
     @Override
-    public int compareTo(MatrixMatrix o) {
+    public int compareTo(NMFMatrix o) {
 	if (this.rowNumber - o.rowNumber != 0) {
 	    return this.rowNumber - o.rowNumber;
 	}
@@ -168,7 +168,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
      *      false if dimensions of this and m do not agree
      *      true if the sum was computed correctly
      */
-    public boolean inPlaceSum(MatrixMatrix m) {
+    public boolean inPlaceSum(NMFMatrix m) {
 	if (this.rowNumber != m.rowNumber || this.columnNumber != m.columnNumber) {
 	    return false;
 	}
@@ -185,40 +185,40 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 	return true;
     }
 
-    public static MatrixVector vectorMul(MatrixMatrix m, MatrixVector v) {
-	MatrixVector ret = new MatrixVector(m.rowNumber, new double[m.rowNumber]);
+    public static NMFVector vectorMul(NMFMatrix m, NMFVector v) {
+	NMFVector ret = new NMFVector(m.rowNumber, new double[m.rowNumber]);
 	for (int i = 0; i < m.rowNumber; i++) {
 	    ret.value[i] = m.getRowVector(i).internalProduct(v);
 	}
 	return ret;
     }
 
-    public static MatrixVector leftVectorMul(MatrixMatrix m ,MatrixVector v){
-	MatrixVector ret = new MatrixVector(m.rowNumber, new double[m.rowNumber]);
+    public static NMFVector leftVectorMul(NMFMatrix m ,NMFVector v){
+	NMFVector ret = new NMFVector(m.rowNumber, new double[m.rowNumber]);
 	for (int i = 0; i < m.rowNumber; i++) {
 	    ret.value[i] = m.getColumnVector(i).internalProduct(v);
 	}
 	return ret;
     }
 
-    private MatrixVector getColumnVector(int i){
+    private NMFVector getColumnVector(int i){
 	double[] out = new double[this.columnNumber];
 	for (int j = 0; j < out.length;j++){
 	    out[i] = this.value[j][i];
 	}
-	MatrixVector mv = new MatrixVector(out.length, out);
+	NMFVector mv = new NMFVector(out.length, out);
 	System.out.println("il vettore "+i+"di C e: "+mv.toString());
 	return mv;
     }
 
-    private MatrixVector getRowVector(int i) {
+    private NMFVector getRowVector(int i) {
 
-	return new MatrixVector(this.value[i].length, this.value[i]);
+	return new NMFVector(this.value[i].length, this.value[i]);
     }
 
 
 
-    public void inPlacePointMul(MatrixMatrix m) throws IOException {
+    public void inPlacePointMul(NMFMatrix m) throws IOException {
 	if (this.rowNumber != m.rowNumber || this.columnNumber != m.columnNumber) {
 	    throw new IOException();
 	}
@@ -229,7 +229,7 @@ public class MatrixMatrix implements WritableComparable<MatrixMatrix> {
 	}
     }
 
-    public void inPlacePointDiv(MatrixMatrix m) throws IOException {
+    public void inPlacePointDiv(NMFMatrix m) throws IOException {
 	if (this.rowNumber != m.rowNumber || this.columnNumber != m.columnNumber) {
 	    throw new IOException();
 	}

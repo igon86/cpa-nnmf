@@ -22,15 +22,15 @@ import util.*;
  */
 public class HPhase2{
 
-	public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, GenericWritablePhase1> {
+	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, GenericElement> {
 		protected void setup(Context context){
-		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void map(IntWritable key, MatrixVector value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, NMFVector value, Context context) throws IOException, InterruptedException
 		{
 			/**wraps the matrix vector */
-			GenericWritablePhase1 out = new GenericWritablePhase1();
+			GenericElement out = new GenericElement();
 			out.set(value);
 
 			context.write(key, out);
@@ -39,28 +39,28 @@ public class HPhase2{
 
 	}
 
-	public static class MyReducer extends Reducer<IntWritable, GenericWritablePhase1, IntWritable, GenericWritablePhase1> {
+	public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
 		protected void setup(Context context){
-		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
-		public void reduce(IntWritable key, Iterable<GenericWritablePhase1> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
-			MatrixVector mv,result = null;
+			NMFVector mv,result = null;
 
-			Iterator<GenericWritablePhase1> iterator = values.iterator();
+			Iterator<GenericElement> iterator = values.iterator();
 			if(iterator.hasNext())
 			{
-				mv = (MatrixVector) iterator.next().get();
-				result = new MatrixVector(mv.getNumberOfElement(),mv.getValues().clone());
+				mv = (NMFVector) iterator.next().get();
+				result = new NMFVector(mv.getNumberOfElement(),mv.getValues().clone());
 			}
 
 			while(iterator.hasNext())
 			{
-				mv = (MatrixVector) iterator.next().get();
+				mv = (NMFVector) iterator.next().get();
 				result.inPlaceSum(mv);
 			}
-			GenericWritablePhase1 out = new GenericWritablePhase1();
+			GenericElement out = new GenericElement();
 			out.set(result);
 			context.write(key,out);
 		}
@@ -90,9 +90,9 @@ public class HPhase2{
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntWritable.class);
-		job.setMapOutputValueClass(GenericWritablePhase1.class);
+		job.setMapOutputValueClass(GenericElement.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(GenericWritablePhase1.class);
+		job.setOutputValueClass(GenericElement.class);
 		
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
