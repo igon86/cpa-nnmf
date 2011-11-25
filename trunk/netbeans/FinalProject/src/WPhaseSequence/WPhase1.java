@@ -14,9 +14,9 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import util.GenericWritablePhase1;
+import util.GenericElement;
 import util.IntAndIdWritable;
-import util.MatrixVector;
+import util.NMFVector;
 import util.SparseVectorElement;
 
 
@@ -30,13 +30,13 @@ public class WPhase1 {
 	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<IntWritable, GenericWritablePhase1, IntAndIdWritable, GenericWritablePhase1> {
+	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, GenericElement> {
 
 		@Override
 		protected void setup(Context context) throws IOException
 		{
 
-		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
@@ -55,7 +55,7 @@ public class WPhase1 {
 		}
 
 		@Override
-		public void map(IntWritable key, GenericWritablePhase1 value, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
 
 			if (H)
@@ -67,7 +67,7 @@ public class WPhase1 {
 				SparseVectorElement sve = (SparseVectorElement) value.get();
 				int column = sve.getCoordinate();
 				int row = key.get();
-				GenericWritablePhase1 out = new GenericWritablePhase1();
+				GenericElement out = new GenericElement();
 				SparseVectorElement out1 = new SparseVectorElement(row,sve.getValue());
 				out.set(out1);
 				context.write(new IntAndIdWritable(column,'a'), out);
@@ -78,26 +78,26 @@ public class WPhase1 {
 	}
 
 
-	public static class MyReducer extends Reducer<IntAndIdWritable, GenericWritablePhase1, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, GenericElement, IntWritable, NMFVector> {
 		@Override
 		protected void setup(Context context){
-		    		    MatrixVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<GenericWritablePhase1> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntAndIdWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
 		{
                         System.out.println("REDUCE KEY:" +key);
 
-			MatrixVector mv = null,temp = null;
+			NMFVector mv = null,temp = null;
 
 			SparseVectorElement val = null;
 
-			Iterator<GenericWritablePhase1> iter = values.iterator();
+			Iterator<GenericElement> iter = values.iterator();
 
 			if(iter.hasNext())
 			{
-				temp = (MatrixVector) iter.next().get();
-				mv = new MatrixVector(temp.getNumberOfElement(), temp.getValues().clone());
+				temp = (NMFVector) iter.next().get();
+				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
 				System.out.println("VETTORE: "+mv.toString());
 
 			}
@@ -107,7 +107,7 @@ public class WPhase1 {
 				System.out.println("SPARSE ELEMENT" + val.toString());
 				if (val.getValue() != 0.0)
 				{
-					MatrixVector mvEmit =  mv.ScalarProduct(val.getValue());
+					NMFVector mvEmit =  mv.ScalarProduct(val.getValue());
 					context.write(new IntWritable(val.getCoordinate()), mvEmit);
 				}
 			}
@@ -137,9 +137,9 @@ public class WPhase1 {
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
-		job.setMapOutputValueClass(GenericWritablePhase1.class);
+		job.setMapOutputValueClass(GenericElement.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 
 		//job.setPartitionerClass(FirstPartitioner.class);
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);

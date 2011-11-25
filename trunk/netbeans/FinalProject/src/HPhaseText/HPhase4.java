@@ -26,9 +26,9 @@ import util.*;
 public class HPhase4 {
 
     /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixVector> {
+    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFVector> {
 
-        private static MatrixMatrix WW;
+        private static NMFMatrix WW;
 
         protected void setup(Context context) throws IOException
 		{
@@ -55,7 +55,7 @@ public class HPhase4 {
 		
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
-                WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
+                WW = NMFMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
 		System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
             }
 
@@ -65,10 +65,10 @@ public class HPhase4 {
 		{
 			int column = Integer.parseInt(value.toString().split("\t")[0]);
 			String vector = value.toString().split("\t")[1];
-			MatrixVector mv = MatrixVector.parseLine(vector);
+			NMFVector mv = NMFVector.parseLine(vector);
 
 			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
-			MatrixVector out = MatrixMatrix.vectorMul(WW,mv);
+			NMFVector out = NMFMatrix.vectorMul(WW,mv);
 			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
 			context.write(new IntWritable(column),out);
 
@@ -93,7 +93,7 @@ public class HPhase4 {
         job.setMapperClass(MyMapper.class);
 	
         job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(MatrixVector.class);
+        job.setOutputValueClass(NMFVector.class);
 
 		job.setNumReduceTasks(0);
 

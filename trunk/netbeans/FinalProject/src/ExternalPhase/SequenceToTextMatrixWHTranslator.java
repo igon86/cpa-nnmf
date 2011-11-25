@@ -5,7 +5,7 @@
 
 package ExternalPhase;
 
-import util.MatrixVector;
+import util.NMFVector;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -22,10 +22,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class SequenceToTextMatrixWHTranslator
 {
-	public static class MyMapper extends Mapper<IntWritable, MatrixVector, IntWritable, MatrixVector> {
+	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, NMFVector> {
 
 		@Override
-		public void map(IntWritable key, MatrixVector values, Context context) throws IOException, InterruptedException
+		public void map(IntWritable key, NMFVector values, Context context) throws IOException, InterruptedException
 		{
 			context.write(key, values);
 		}
@@ -52,7 +52,7 @@ public class SequenceToTextMatrixWHTranslator
 		job.setMapperClass(MyMapper.class);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setNumReduceTasks(0);
 

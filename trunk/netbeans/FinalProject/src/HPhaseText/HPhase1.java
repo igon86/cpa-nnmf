@@ -19,7 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import util.IntAndIdWritable;
-import util.MatrixVector;
+import util.NMFVector;
 import util.SparseElement;
 import util.SparseVectorElement;
 
@@ -150,7 +150,7 @@ public class HPhase1 {
 	    }
 	  }
 
-	public static class MyReducer extends Reducer<IntAndIdWritable, Text, IntWritable, MatrixVector> {
+	public static class MyReducer extends Reducer<IntAndIdWritable, Text, IntWritable, NMFVector> {
 
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
@@ -158,7 +158,7 @@ public class HPhase1 {
                         System.out.println("REDUCE KEY:" +key);
 			/* The array contains the the row vector once the w row vector is read */
 			//double[] dValues = null;
-			MatrixVector mv;
+			NMFVector mv;
 
 			Text val;
 
@@ -169,7 +169,7 @@ public class HPhase1 {
 				val = iter.next();
 				System.out.println("VALUE:"+val);
 
-				mv = MatrixVector.parseLine(val.toString());
+				mv = NMFVector.parseLine(val.toString());
 				//dValues = mv.getValues();
 			}
 			else throw new IOException("It shouldn't be never verified");
@@ -182,7 +182,7 @@ public class HPhase1 {
 
 				if (sve.getValue() != 0.0)
 				{
-					MatrixVector mvEmit =  mv.ScalarProduct(sve.getValue());
+					NMFVector mvEmit =  mv.ScalarProduct(sve.getValue());
 					context.write(new IntWritable(sve.getCoordinate()), mvEmit);
 				}
 			}
@@ -213,7 +213,7 @@ public class HPhase1 {
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
 		job.setMapOutputValueClass(Text.class);
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixVector.class);
+		job.setOutputValueClass(NMFVector.class);
 
 		//job.setPartitionerClass(FirstPartitioner.class);
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);

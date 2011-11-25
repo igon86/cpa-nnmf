@@ -27,7 +27,7 @@ import util.*;
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, MatrixMatrix> {
+	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFMatrix> {
 
 		@Override
 		protected void setup(Context context) throws IOException
@@ -50,9 +50,9 @@ public class HPhase3 {
 		{
 			String vector = value.toString().split("\t")[1];
 			
-			MatrixVector mv = MatrixVector.parseLine(vector);
+			NMFVector mv = NMFVector.parseLine(vector);
 
-			MatrixMatrix result = mv.externalProduct(mv);
+			NMFMatrix result = mv.externalProduct(mv);
 
 			System.out.println("External Prod = "+result.toString());
 
@@ -65,20 +65,20 @@ public class HPhase3 {
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
-	public static class MyReducer extends Reducer<IntWritable, MatrixMatrix, NullWritable, MatrixMatrix> {
+	public static class MyReducer extends Reducer<IntWritable, NMFMatrix, NullWritable, NMFMatrix> {
 
 		@Override
-		public void reduce(IntWritable key, Iterable<MatrixMatrix> values, Context context) throws IOException, InterruptedException
+		public void reduce(IntWritable key, Iterable<NMFMatrix> values, Context context) throws IOException, InterruptedException
 		{
-			MatrixMatrix result;
+			NMFMatrix result;
 
-			Iterator<MatrixMatrix> iter = values.iterator();
-			MatrixMatrix val;
+			Iterator<NMFMatrix> iter = values.iterator();
+			NMFMatrix val;
 
 			if(iter.hasNext())
 			{
 				val = iter.next();
-				result = new MatrixMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
+				result = new NMFMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
 				System.out.println("REDUCE: ho ricevuto: "+result.toString());
 			}
 			else throw new IOException("It shouldn't be never verified");
@@ -123,7 +123,7 @@ public class HPhase3 {
 		//job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(MatrixMatrix.class);
+		job.setOutputValueClass(NMFMatrix.class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		TextOutputFormat.setOutputPath(job, new Path(args[1]));

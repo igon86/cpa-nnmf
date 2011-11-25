@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
-public class MatrixVector implements WritableComparable<MatrixVector> {
+public class NMFVector implements WritableComparable<NMFVector> {
 
     private static int elementsNumber = 0;
     protected double[] value;
@@ -16,21 +16,21 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	elementsNumber = value;
     }
 
-    public MatrixVector(int element_number, double[] elements) {
+    public NMFVector(int element_number, double[] elements) {
 	//this.elementsNumber = element_number;
 	this.value = elements;
     }
 
-    public MatrixVector(Text s) throws IOException {
+    public NMFVector(Text s) throws IOException {
 	parseLine(s.toString(), this);
     }
 
-    public MatrixVector() {
+    public NMFVector() {
 	;
     }
 
-    static public MatrixVector parseLine(String s) throws IOException {
-	MatrixVector mv = new MatrixVector();
+    static public NMFVector parseLine(String s) throws IOException {
+	NMFVector mv = new NMFVector();
 	parseLine(s, mv);
 	return mv;
 
@@ -39,7 +39,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
     // a vector (row or column) per line
     // no new line at the end of a file
 
-    static private void parseLine(String s, MatrixVector mv) throws IOException {
+    static private void parseLine(String s, NMFVector mv) throws IOException {
 
 	if (elementsNumber == 0) throw new IOException("fail read fields");
 
@@ -69,7 +69,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	return this.value;
     }
 
-    public MatrixMatrix externalProduct(MatrixVector v) // Tensor Product
+    public NMFMatrix externalProduct(NMFVector v) // Tensor Product
     {
 	int size = this.getNumberOfElement();
 	if (this.getNumberOfElement() != v.getNumberOfElement()) {
@@ -86,10 +86,10 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	    }
 	}
 
-	return new MatrixMatrix(size, size, tmp);
+	return new NMFMatrix(size, size, tmp);
     }
 
-    public double internalProduct(MatrixVector v) {
+    public double internalProduct(NMFVector v) {
 	if (this.elementsNumber != v.elementsNumber) {
 	    return 0;
 	}
@@ -100,14 +100,14 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	return ret;
     }
 
-    public MatrixVector ScalarProduct(double value) {
+    public NMFVector ScalarProduct(double value) {
 	double[] doubleTmp = this.value.clone();
 
 	for (int i = 0; i < this.elementsNumber; i++) {
 	    doubleTmp[i] = doubleTmp[i] * value;
 	}
 
-	return new MatrixVector(this.getNumberOfElement(), doubleTmp);
+	return new NMFVector(this.getNumberOfElement(), doubleTmp);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
     }
 
     @Override
-    public int compareTo(MatrixVector o) {
+    public int compareTo(NMFVector o) {
 	if (this.elementsNumber - o.elementsNumber != 0) {
 	    return this.elementsNumber - o.elementsNumber;
 	}
@@ -157,7 +157,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	return stringBuilder.toString();
     }
 
-    public void inPlacePointDiv(MatrixVector m) throws IOException {
+    public void inPlacePointDiv(NMFVector m) throws IOException {
 	if (this.elementsNumber != m.elementsNumber) {
 	    throw new IOException();
 	}
@@ -167,7 +167,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 
 	}
     }
-       public void inPlacePointMul(MatrixVector m) throws IOException {
+       public void inPlacePointMul(NMFVector m) throws IOException {
 	if (this.elementsNumber != m.elementsNumber) {
 	    throw new IOException();
 	}
@@ -178,7 +178,7 @@ public class MatrixVector implements WritableComparable<MatrixVector> {
 	}
     }
        
-       public void inPlaceSum(MatrixVector m) throws IOException {
+       public void inPlaceSum(NMFVector m) throws IOException {
 	   if (this.elementsNumber != m.elementsNumber) {
 	    throw new IOException();
 	}
