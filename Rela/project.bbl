@@ -1,0 +1,37 @@
+\begin{thebibliography}{1}
+
+\bibitem{05abstractemail}
+Michael~W. Berry and Murray Browne.
+\newblock Email surveillance using nonnegative matrix factorization, 2005.
+
+\bibitem{Berry06algorithmsand}
+Michael~W. Berry, Murray Browne, Amy~N. Langville, V.~Paul Pauca, and Robert~J.
+  Plemmons.
+\newblock Algorithms and applications for approximate nonnegative matrix
+  factorization.
+\newblock In {\em Computational Statistics and Data Analysis}, volume Volume
+  52, pages 155--173, 2006.
+
+\bibitem{Lee01algorithmsfor}
+Daniel~D. Lee and H.~Sebastian Seung.
+\newblock Algorithms for non-negative matrix factorization.
+\newblock In {\em In NIPS}, pages 556--562. MIT Press, 2001.
+
+\bibitem{liu2010}
+Chao Liu, Hung-chih Yang, Jinliang Fan, Li-Wei He, and Yi-Min Wang.
+\newblock Distributed nonnegative matrix factorization for web-scale dyadic
+  data analysis on mapreduce.
+\newblock In {\em Proceedings of the 19th international conference on World
+  wide web}, pages 681--690. ACM, 2010.
+
+\bibitem{Nikolaus07learningthe}
+Ralf Nikolaus.
+\newblock Learning the parts of objects using non-negative matrix factorization
+  (nmf), 2007.
+
+\bibitem{WikipediaNMF}
+Wikipedia.
+\newblock Non-negative matrix factorization.
+\newblock \url{http://en.wikipedia.org/wiki/Non-negative_matrix_factorization}.
+
+\end{thebibliography}
