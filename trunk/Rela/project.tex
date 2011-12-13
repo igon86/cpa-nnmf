@@ -270,20 +270,25 @@ Secondary sorter
 
 \subsection{Distributed File System}
 
-In the phase 4, the mapers use a global shared matrix called C. The matrix must be read directly from the Distributed File System at the map setup time. Using the \CLASS{FileSystem} is possible to browse the filesystem and take the desidered file. Infact, in the phase 4 class DFS operation in phase 4
+The data organization in the the distributed file system is quite easy: the name of the input/output directory of the map-reduce phases is mainly handled by the bash scripts. The name of the directory identify the type of data stored into (first character)  and the number of the iteration at which it refers (last character). For example, the ``\textit{X\_PARTIALw6}'' refers to a ``non complete'' computation of the X matrix at the sixth iteration. Doing this clearly distinction, the mappers, in case of multiple input, can discriminate the type of the data passed as input split in the map setup phase.
 
-Record reader
-
-Multiple input file
+In the phase 4, all the mapers use a global shared matrix called C. The matrix cannot be passed as standard input because otherwise the input will be splitted across the mappers. Instead, the file must be read directly from the Distributed File System by the mapper at setup phase. In our project, we assume that the user provides through the command line of the fourth phase the the path where the data of the C matrix is saved. Through the \CLASS{FileSystem} class is possible to browse the filesystem and take the desired file. The read of the file content is done using an instance of a \CLASS{SequenceReader} and reading the matrix contained into that file.
 
 
-\subsection{Other}
+\subsection{Reduction of occupied space}
 
-Context variable
+In order to save occupied space of the files on the distributed file system, we adopt 3 main solution:
+\begin{itemize}
 
-Combiner
+  \item Sequence File - as already said, we use this modality to encode the data in binary format. 
+  
+  \item Null Writable - Some computation doesn't need to store the key. So in this case we emit a null key and the relevant data as value.
+  
+  \item Context Variable - The serialization of a \CLASS{NMFVector} class need to know in advance the number of the elements of the vector itself. Since every vector that we use have the same size ($k$), depndent on the user choice, we decided to remove that information from the serialized data. However we need to know the value of $k$ during serialization and deserialization. The value of $k$ is saved as a static variable in the class NMFVector which is initialized once. The user specify the desired value of $k$ which is then saved in a context variable. When the information is needed by a mapper or a reducer, the main inserts in an associative array a context variable trough the method \METHOD{setInt()} available in the \CLASS{Configuration} class. The defined context variable can be accessed by the mappers and the reducers accessing to the context variable available in the configuration that the framework passes to all the mappers and reducers.
 
-Null Writable
+\end{itemize}
+
+
 
 
 
@@ -291,9 +296,11 @@ Null Writable
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 The computation of the H phase is very similar to the W's ones and
 most of the phase remain unchanged.
- 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 \section{Result}
 
