@@ -36,7 +36,7 @@ public class HPhase3 {
 			NMFVector mv = (NMFVector) value.get();
 			NMFMatrix result = mv.externalProduct(mv);
 
-			System.out.println("External Prod = "+result.toString());
+			//System.out.println("External Prod = "+result.toString());
 
 			context.write(NullWritable.get(), result);
 
@@ -64,7 +64,7 @@ public class HPhase3 {
 			{
 				val = iter.next();
 				result = new NMFMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
-				System.out.println("REDUCE: ho ricevuto: "+result.toString());
+				//System.out.println("REDUCE: ho ricevuto: "+result.toString());
 			}
 			else throw new IOException("It shouldn't be never verified");
 
@@ -72,13 +72,13 @@ public class HPhase3 {
 			while (iter.hasNext())
 			{
 				val = iter.next();
-				System.out.println("REDUCE: ho ricevuto: "+val.toString());
+				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
 				if (!result.inPlaceSum(val)){
 				    System.out.println("ERRORE nella somma di matrici");
 				    throw new IOException("ERRORE nella somma di matrici");
 				}
 			}
-			System.out.println(result.toString());
+			//System.out.println(result.toString());
 			context.write(NullWritable.get(), result);
 		}
 	}

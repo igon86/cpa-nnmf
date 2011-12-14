@@ -39,6 +39,7 @@ public class HPhase1 {
 		@Override
 		protected void setup(Context context) throws IOException
 		{
+                    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
 			/*  the number present in the file name is the number of the first stored row vector
@@ -151,7 +152,9 @@ public class HPhase1 {
 	  }
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, Text, IntWritable, NMFVector> {
-
+                protected void setup(Context context){
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
 		{
@@ -195,17 +198,19 @@ public class HPhase1 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
 			System.err.println("Third Parameter: Output directory");
+                        System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 
 		Configuration conf = new Configuration();
+                conf.setInt("elementsNumber", Integer.parseInt(args[3]));
 
-		Job job = new Job(conf, "MapRed Step1");
+		Job job = new Job(conf, "MapRed Step1 TEXT");
 		job.setJarByClass(HPhase1.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);

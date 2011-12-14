@@ -74,13 +74,13 @@ public class HPhase4 {
                     sb.append(input);
                     input = br.readLine();
                 }
-		System.out.println("DA FILE HO LETTO: "+sb.toString());
+		//System.out.println("DA FILE HO LETTO: "+sb.toString());
 		
                 // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
                 WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
 		 **/
-		System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
+		//System.out.println("QUESTA E LA MATRICE WW CHE HO LETTO: "+WW.toString());
 		
             }
 
@@ -89,9 +89,9 @@ public class HPhase4 {
         public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
 			NMFVector mv = (NMFVector) value.get();
-			System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
+			//System.out.println("MI ARRIVA STO VETTORE: "+mv.toString());
 			NMFVector out = NMFMatrix.vectorMul(WW,mv);
-			System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
+			//System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
 			GenericElement gw = new GenericElement();
 			gw.set(out);
 			context.write(key,gw);

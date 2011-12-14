@@ -56,8 +56,9 @@ public class NMFVector implements WritableComparable<NMFVector> {
 	    }
 	    System.out.println("Valori del vettore presi");
 	} catch (NumberFormatException e) {
-	    System.out.println("Input Error reading SparseElement Value" + s);
+	    System.out.println("Input Error reading NMFVector Value" + s);
 	    mv.value = null;
+            throw new IOException();
 	}
     }
 
