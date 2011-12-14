@@ -19,7 +19,7 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
             this.value = value;
         }
 
-        public SparseVectorElement(Text s)
+        public SparseVectorElement(Text s) throws IOException
         {
         	parseLine(s.toString(), this);
         }
@@ -29,14 +29,14 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
         	;
         }
 
-        static public SparseVectorElement parseLine(String s)
+        static public SparseVectorElement parseLine(String s) throws IOException
         {
         	SparseVectorElement sve = new SparseVectorElement();
         	parseLine(s, sve);
         	return sve;
         }
 
-        static private void parseLine(String s, SparseVectorElement sve)
+        static private void parseLine(String s, SparseVectorElement sve) throws IOException
         {
         	try
         	{
@@ -49,6 +49,7 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
         		System.out.println("Input Error reading SparseVectorElement Value" + s);
         		sve.coordinate = 0;
         		sve.value = 0.0;
+                        throw new IOException();
         	}
         }
 

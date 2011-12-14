@@ -69,7 +69,7 @@ public class IntAndIdWritable extends IntWritable {
 	@Override
   public int compareTo(Object o)
   {
-	System.out.println("IntAndIdWritable. Sono nella compareTo: "+this.toString() + " "+o.toString());
+	//System.out.println("IntAndIdWritable. Sono nella compareTo: "+this.toString() + " "+o.toString());
 	int compare_value = super.compareTo(o);
 
 	return (compare_value==0)? this.id - ((IntAndIdWritable)o).id : compare_value;
@@ -91,7 +91,7 @@ public class IntAndIdWritable extends IntWritable {
 
     public int compare(byte[] b1, int s1, int l1,
                        byte[] b2, int s2, int l2) {
-	System.out.println("SONO nella compareBYTES: ");
+	//System.out.println("SONO nella compareBYTES: ");
 
       int thisValue = readInt(b1, s1);
       int thatValue = readInt(b2, s2);

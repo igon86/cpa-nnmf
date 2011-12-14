@@ -161,7 +161,7 @@ public class HPhase1 {
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
 		{
-                        System.out.println("REDUCE KEY:" +key);
+                        //System.out.println("REDUCE KEY:" +key);
 			
 			NMFVector mv = null,temp = null;
 
@@ -171,15 +171,20 @@ public class HPhase1 {
 
 			if(iter.hasNext())
 			{
-				temp = (NMFVector) iter.next().get();
+                                try{
+                                    temp = (NMFVector) iter.next().get();
+                                }
+                                catch (ClassCastException e){
+                                    System.out.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"\n"+e.toString());
+                                }
 				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
-				System.out.println("VETTORE: "+mv.toString());
+				//System.out.println("VETTORE: "+mv.toString());
 
 			}
 			while (iter.hasNext())
 			{
 				val = (SparseVectorElement) iter.next().get();
-				System.out.println("SPARSE ELEMENT" + val.toString());
+				//System.out.println("SPARSE ELEMENT" + val.toString());
 				if (val.getValue() != 0.0)
 				{
 					NMFVector mvEmit =  mv.ScalarProduct(val.getValue());
