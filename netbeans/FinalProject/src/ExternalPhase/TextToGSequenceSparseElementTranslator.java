@@ -52,8 +52,10 @@ public class TextToGSequenceSparseElementTranslator
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
 
-		//job.setNumReduceTasks(0);
+		job.setNumReduceTasks(0);
 
+                //job.setMapOutputKeyClass(IntWritable.class);
+		//job.setMapOutputValueClass(GenericElement.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericElement.class);
 
