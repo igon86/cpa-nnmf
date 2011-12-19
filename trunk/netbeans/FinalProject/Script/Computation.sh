@@ -23,7 +23,8 @@ then
 		DEFAULT_REMOTE_A=A0
 		DEFAULT_REMOTE_H=H
 		DEFAULT_REMOTE_W=W
-		export DEFAULT_JAR=${NMF_HOME}/dist/FinalProject.jar
+#		export DEFAULT_JAR=${NMF_HOME}/dist/FinalProject.jar
+                DEFAULT_K=10
 
 	else
 		echo "The number of parameters are not corrected"
@@ -36,7 +37,6 @@ then
 	fi
 fi
 
-DEFAULT_K=2
 ##### LE VEDO?????
 
 

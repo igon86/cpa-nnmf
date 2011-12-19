@@ -30,6 +30,7 @@ A_DATA=$2
 H_DATA=${3}$((iter_numb-1))
 W_DATA=${4}$((iter_numb-1))
 K_DIM=$5
+
 X_PARTIAL=X_PARTIALw$6
 X_FINAL=X_FINALw$6
 Y_FINAL=Y_FINALw$6
