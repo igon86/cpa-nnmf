@@ -29,6 +29,12 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
         	;
         }
 
+        public void set(int coordinate, double value)
+        {
+            this.coordinate = coordinate;
+            this.value = value;
+        }
+
         static public SparseVectorElement parseLine(String s) throws IOException
         {
         	SparseVectorElement sve = new SparseVectorElement();

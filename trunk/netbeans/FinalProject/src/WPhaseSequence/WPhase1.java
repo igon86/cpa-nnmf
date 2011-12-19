@@ -32,11 +32,14 @@ public class WPhase1 {
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, GenericElement> {
 
+                GenericElement out = new GenericElement();
+                SparseVectorElement out1 = new SparseVectorElement();
+                
 		@Override
 		protected void setup(Context context) throws IOException
 		{
 
-		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+                        NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
@@ -48,7 +51,6 @@ public class WPhase1 {
 
 			if (folderName.startsWith("H")) /* A row vector must be emitted */
 			{
-
 				H = true;
 			}
 			else if( ! folderName.startsWith("A")) throw new IOException("File name not correct");
@@ -64,12 +66,13 @@ public class WPhase1 {
 			}
 			else  /* The sparse element must be emitted */
 			{
+                                /** this part is necessary since the order shoulde be column - row*/
 				SparseVectorElement sve = (SparseVectorElement) value.get();
 				int column = sve.getCoordinate();
-				int row = key.get();
-				GenericElement out = new GenericElement();
-				SparseVectorElement out1 = new SparseVectorElement(row,sve.getValue());
+				int row = key.get();				
+				out1.set(row,sve.getValue());
 				out.set(out1);
+
 				context.write(new IntAndIdWritable(column,'a'), out);
 			}
 		}
@@ -86,7 +89,6 @@ public class WPhase1 {
 		@Override
 		public void reduce(IntAndIdWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
 		{
-                        System.out.println("REDUCE KEY:" +key);
 
 			NMFVector mv = null,temp = null;
 
@@ -125,6 +127,7 @@ public class WPhase1 {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
 			System.err.println("Third Parameter: Output directory");
+                        System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
 			System.exit(-1);
 		}
 
@@ -147,7 +150,7 @@ public class WPhase1 {
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		// Testing Job Options
-		job.setNumReduceTasks(2);
+		//job.setNumReduceTasks(2);
 		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));

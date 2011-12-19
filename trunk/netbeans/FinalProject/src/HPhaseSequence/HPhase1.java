@@ -5,14 +5,9 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
@@ -53,24 +48,9 @@ public class HPhase1 {
 
 			if (folderName.startsWith("W")) /* A row vector must be emitted */
 			{
-				//int i,j;
 
 				W = true;
-				/**
-				//for (i = 0; i < chunkName.length() &&
-					(chunkName.charAt(i) < '0' || chunkName.charAt(i) > '9'); i++);
-
-				//for (j=i; j < chunkName.length() &&
-				 (chunkName.charAt(j) >= '0' && chunkName.charAt(j) <= '9'); j++);
-
-				//try
-				{
-					String rowNumber = chunkName.substring(i, j);
-					System.out.println("GUARDARE:" + rowNumber);
-					currentRow = new Integer(rowNumber);
-				}
-				catch (NumberFormatException e) { throw new IOException("File name conversion failled"); }
-			*/}
+                        }
 			else if( ! folderName.startsWith("A")) throw new IOException("File name not correct");
 		}
 
@@ -79,8 +59,7 @@ public class HPhase1 {
 		{
 
 			if (W)
-			{
-				
+			{	
 				context.write(new IntAndIdWritable(key.get(),'W'), value );
 			}
 			else  /* The sparse element must be emitted */
@@ -92,67 +71,6 @@ public class HPhase1 {
                 //lower case is usefull for the ordering of the key
 
 	}
-
-
-
-	  /**
-	   * Partition based on the first part of the pair.
-	   */
-	  public static class FirstPartitioner extends Partitioner<Text,Text>{
-	    @Override
-	    public int getPartition(Text key, Text value, int numPartitions) {
-	    	int j;
-	    	String s = key.toString();
-	    	for (j=0; j < s.length() && (s.charAt(j) >= '0' && s.charAt(j) <= '9'); j++);
-	    	int parsed = Integer.parseInt(s.substring(0, j));
-		System.out.println("Invocato FirstPartitioner con KEY: "+key.toString()+"\nVALUE: "
-			+value.toString()+"\nnumPartitions: "+numPartitions +"\n e lo mando al reducer: "+parsed%numPartitions);
-	      return parsed % numPartitions;
-	    }
-          }
-
-	  /**
-	   * Compare only the first part of the pair, so that reduce is called once
-	   * for each value of the first part.
-	   */
-	  public static class FirstGroupingComparator implements RawComparator<Text> {
-
-		@Override
-	    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)
-	    {
-		System.out.println("Sono nella GroupingComparator");
-                DataInputBuffer buffer = new DataInputBuffer();
-                WritableComparable t1 = new Text();
-                WritableComparable t2 = new Text();
-                try {
-                    buffer.reset(b1, s1, l1);
-                    t1.readFields(buffer);
-                    System.out.println("ARG1: "+t1.toString());
-                    buffer.reset(b2, s2, l2);
-                    t2.readFields(buffer);
-                    System.out.println("ARG2: "+t2.toString());
-
-                } catch (IOException e) {
-                    System.out.println("col cazzo che ha funzionato");
-                    throw new RuntimeException(e);
-                }
-	    	return compare((Text )t1, (Text) t2);
-
-
-	    }
-
-
-		@Override
-	    public int compare(Text o1, Text o2)
-	    {
-
-	      String s1,s2;
-	      s1 = o1.toString().substring(0, o1.getLength()-1);
-              s2 = o2.toString().substring(0, o2.getLength()-1);
-              System.out.println("sono nella compare oggetti: "+s1+" VS "+s2);
-	      return s1.compareTo(s2);
-	    }
-	  }
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, GenericElement, IntWritable, NMFVector> {
 		protected void setup(Context context){
@@ -180,13 +98,11 @@ public class HPhase1 {
                                     System.out.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
                                 }
 				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
-				//System.out.println("VETTORE: "+mv.toString());
 
 			}
 			while (iter.hasNext())
 			{
 				val = (SparseVectorElement) iter.next().get();
-				//System.out.println("SPARSE ELEMENT" + val.toString());
 				if (val.getValue() != 0.0)
 				{
 					NMFVector mvEmit =  mv.ScalarProduct(val.getValue());
@@ -230,7 +146,7 @@ public class HPhase1 {
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		// Testing Job Options
-		job.setNumReduceTasks(2);
+		//job.setNumReduceTasks(2);
 		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
