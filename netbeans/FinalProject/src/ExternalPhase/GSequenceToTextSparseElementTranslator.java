@@ -19,27 +19,21 @@ import util.SparseVectorElement;
 
 
 
-public class GSequenceToTextSparseElementMatrix
+public class GSequenceToTextSparseElementTranslator
 {
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, SparseElement, NullWritable> {
 
 		@Override
 		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
-                    /*
-			SparseElement se = SparseElement.parseLine(value.toString());
-			SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-			GenericElement gw = new GenericElement();
-			gw.set(sve);
-                      */
-
-
 
                         SparseVectorElement sve = (SparseVectorElement) value.get();
+                        System.out.println("HO LETTO: "+key.toString()+ " " +sve.toString());
                         SparseElement se = new SparseElement(key.get(), sve.getCoordinate(), sve.getValue());
 
                         try{
                             se.toString();
+                            System.out.println("STAMPERO: "+se.toString());
                         }
                         catch(NullPointerException e)
                         {
@@ -94,7 +88,7 @@ public class GSequenceToTextSparseElementMatrix
 
 		Configuration conf = new Configuration();
 
-		Job job = new Job(conf, "Translator from Text to Sequence for the Sparse Element");
+		Job job = new Job(conf, "Translator from GSequence to Text for the Sparse Element");
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
                 //job.setReducerClass(MyReducer.class);
