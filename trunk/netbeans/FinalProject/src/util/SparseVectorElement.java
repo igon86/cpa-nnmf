@@ -89,6 +89,6 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
 	@Override
 		public String toString()
 		{
-			return ""+ this.coordinate +"#" + this.value + "\n";
+			return ""+ this.coordinate +"#" + this.value;
 		}
 }

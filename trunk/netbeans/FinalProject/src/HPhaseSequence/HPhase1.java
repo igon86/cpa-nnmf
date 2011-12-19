@@ -87,8 +87,8 @@ public class HPhase1 {
 			{
 
 				context.write(new IntAndIdWritable(key.get(),'a'), value);
+                                }
 			}
-		}
                 //lower case is usefull for the ordering of the key
 
 	}
@@ -171,11 +171,13 @@ public class HPhase1 {
 
 			if(iter.hasNext())
 			{
+                                GenericElement g = iter.next();
                                 try{
-                                    temp = (NMFVector) iter.next().get();
+                                    temp = (NMFVector) g.get();
                                 }
                                 catch (ClassCastException e){
-                                    System.out.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"\n"+e.toString());
+                                    val = (SparseVectorElement) g.get();
+                                    System.out.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
                                 }
 				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
 				//System.out.println("VETTORE: "+mv.toString());
@@ -212,7 +214,7 @@ public class HPhase1 {
 		Configuration conf = new Configuration();
 		conf.setInt("elementsNumber", Integer.parseInt(args[3]));
 
-		Job job = new Job(conf, "MapRed Step1");
+		Job job = new Job(conf, "H MapRed Step1");
 		job.setJarByClass(HPhase1.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
