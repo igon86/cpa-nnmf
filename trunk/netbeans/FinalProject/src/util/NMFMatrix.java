@@ -41,30 +41,30 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
 
 	try {
 	    String[] splitted = s.split("\t");
-	    System.out.println("MatrixMatrix: stringa partizionata");
+	    //System.out.println("MatrixMatrix: stringa partizionata");
 
 	    String[] tmp = splitted[0].split("#");
-	    System.out.println("parsing a #");
+	    //System.out.println("parsing a #");
 
-	    System.out.println("Conversione 1:<" + tmp[0] + ">");
+	    //System.out.println("Conversione 1:<" + tmp[0] + ">");
 	    mv.rowNumber = Integer.parseInt(tmp[0]);
 
-	    System.out.println("Conversione 2:<" + tmp[1] + ">");
+	    //System.out.println("Conversione 2:<" + tmp[1] + ">");
 	    mv.columnNumber = Integer.parseInt(tmp[1]);
 
 	    mv.value = new double[mv.rowNumber][mv.columnNumber];
-	    System.out.println("Dimensione presa " + splitted.length);
+	    //System.out.println("Dimensione presa " + splitted.length);
 
 	    for (int row = 1; row < splitted.length && row - 1 < mv.rowNumber; row++) {
-		System.out.println("SPLITTED ROW " + row + " " + splitted[row]);
+		//System.out.println("SPLITTED ROW " + row + " " + splitted[row]);
 		tmp = splitted[row].split("#");
-		System.out.println("row partitioned in " + tmp.length + " values");
+		//System.out.println("row partitioned in " + tmp.length + " values");
 		for (int i = 0; i < mv.columnNumber && i <= splitted.length; i++) {
-		    System.out.println("row " + i + "^ value = <" + tmp[i] + ">");
+		    //System.out.println("row " + i + "^ value = <" + tmp[i] + ">");
 		    mv.value[row - 1][i] = new Double(tmp[i]);
-		    System.out.println("Ho acquisito il " + i + "-esimo parametro");
+		    //System.out.println("Ho acquisito il " + i + "-esimo parametro");
 		}
-		System.out.println("MATRIXMATRIX: PARSELINE TERMINATA CON SUCCESSO");
+		//System.out.println("MATRIXMATRIX: PARSELINE TERMINATA CON SUCCESSO");
 	    }
 
 	} catch (NumberFormatException e) {
@@ -105,7 +105,7 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
     @Override
     public void write(DataOutput arg0) throws IOException {
 
-	System.out.println("Sono nella write obj" + this.toString());
+	//System.out.println("Sono nella write obj" + this.toString());
 	arg0.writeInt(this.rowNumber);
 	arg0.writeInt(this.columnNumber);
 	for (int i = 0; i < this.rowNumber; i++) {
@@ -155,7 +155,7 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
 	}
 	stringBuilder.append('\n');
 
-	System.out.println("Sono nella printf " + stringBuilder.toString());
+	//System.out.println("Sono nella printf " + stringBuilder.toString());
 
 	return stringBuilder.toString();
     }
@@ -172,8 +172,8 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
 	if (this.rowNumber != m.rowNumber || this.columnNumber != m.columnNumber) {
 	    return false;
 	}
-	System.out.println("Sto per sommare " + this.toString() + "CON " + m.toString());
-	System.out.println("Sto per sommare " + this.value + "CON " + m.value);
+	//System.out.println("Sto per sommare " + this.toString() + "CON " + m.toString());
+	//System.out.println("Sto per sommare " + this.value + "CON " + m.value);
 	for (int i = 0; i < this.rowNumber; i++) {
 	    for (int j = 0; j < this.columnNumber; j++) {
 		//System.out.println("sommo this.value[" +i+"]["+j+"]: ");
@@ -207,7 +207,7 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
 	    out[i] = this.value[j][i];
 	}
 	NMFVector mv = new NMFVector(out.length, out);
-	System.out.println("il vettore "+i+"di C e: "+mv.toString());
+	//System.out.println("il vettore "+i+"di C e: "+mv.toString());
 	return mv;
     }
 
