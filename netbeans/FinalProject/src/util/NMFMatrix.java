@@ -68,8 +68,8 @@ public class NMFMatrix implements WritableComparable<NMFMatrix> {
 	    }
 
 	} catch (NumberFormatException e) {
-	    System.out.println("Input Error reading MatrixMatrix Value <" + s + ">");
-	    System.out.println(e.toString());
+	    System.err.println("Input Error reading MatrixMatrix Value <" + s + ">");
+	    System.err.println(e.toString());
 	    mv.columnNumber = 0;
 	    mv.rowNumber = 0;
 	    mv.value = null;

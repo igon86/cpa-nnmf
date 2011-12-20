@@ -74,7 +74,7 @@ public class HPhase3 {
 				val = iter.next();
 				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
 				if (!result.inPlaceSum(val)){
-				    System.out.println("ERRORE nella somma di matrici");
+				    System.err.println("ERRORE nella somma di matrici");
 				    throw new IOException("ERRORE nella somma di matrici");
 				}
 			}

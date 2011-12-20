@@ -28,49 +28,22 @@ public class GSequenceToTextSparseElementTranslator
 		{
 
                         SparseVectorElement sve = (SparseVectorElement) value.get();
-                        System.out.println("HO LETTO: "+key.toString()+ " " +sve.toString());
+                        //System.out.println("HO LETTO: "+key.toString()+ " " +sve.toString());
                         SparseElement se = new SparseElement(key.get(), sve.getCoordinate(), sve.getValue());
 
                         try{
                             se.toString();
-                            System.out.println("STAMPERO: "+se.toString());
+                            //System.out.println("STAMPERO: "+se.toString());
                         }
                         catch(NullPointerException e)
                         {
-                            System.out.println("!!!####\n");
-                            System.out.println("!!!####Errore di null pointer " + key.get() +"\\" + sve.getCoordinate()+"\\"+sve.getValue()+"\n");
+                            System.err.println("!!!####Errore di null pointer " + key.get() +"\\" + sve.getCoordinate()+"\\"+sve.getValue()+"\n");
                         }
                         
-
-
                         context.write(se, NullWritable.get());
 
-			//context.write(NullWritable.get()), se.toString());
 		}
 	}
-
-/*
-
-        public static class MyReducer extends Reducer<NullWritable, SparseElement, NullWritable, SparseElement> {
-
-		
-		public void reduce(NullWritable key, SparseElement value, Context context) throws IOException, InterruptedException
-		{
-
-                        try{
-                            value.toString();
-                            context.write(NullWritable.get(), value);
-                        }
-                        catch(NullPointerException e)
-                        {
-                            System.out.println("!!!####\n");
-                            System.out.println("!!!####Errore di null pointer " + (value == null) +"\n");
-                        }
-
-
-		}
-	}
-*/
 
 	/**
 	 * @param args

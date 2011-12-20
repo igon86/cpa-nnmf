@@ -18,8 +18,6 @@ import org.apache.hadoop.io.WritableComparator;
 public class IntAndIdWritable extends IntWritable {
     private char id;
 
-    private static String debug= System.getProperty("DEBUG", "false");
-
     public IntAndIdWritable()
     {
 		super();
@@ -91,36 +89,10 @@ public class IntAndIdWritable extends IntWritable {
 
     public int compare(byte[] b1, int s1, int l1,
                        byte[] b2, int s2, int l2) {
-	//System.out.println("SONO nella compareBYTES: ");
 
       int thisValue = readInt(b1, s1);
       int thatValue = readInt(b2, s2);
-      /**
-      DataInputBuffer buffer = new DataInputBuffer();
-      WritableComparable t1 = new IntAndIdWritable();
-      WritableComparable t2 = new IntAndIdWritable();
-      WritableComparable t3 = new Text();
-      WritableComparable t4 = new Text();
-
-      try {
-                    buffer.reset(b1, s1, l1);
-                    t1.readFields(buffer);
-		    //buffer.reset(b1, s1+l1-1, 1);
-		    //t3.readFields(buffer);
-                    System.out.println("ARG1: "+t1.toString());
-		    System.out.println("INT1:" +thisValue);
-                    buffer.reset(b2, s2, l2);
-                    t2.readFields(buffer);
-		    //buffer.reset(b2, s2+21-1, 1);
-		    //t4.readFields(buffer);
-		    System.out.println("ARG2: "+t2.toString());
-                    System.out.println("INT2: "+thatValue);
-
-      } catch (IOException e) {
-                    System.out.println("problem in debugging IntAndIdWritable compare bytes");
-                    throw new RuntimeException(e);
-      }
-      */
+      
       // QUI i char sono in UTF quindi occupano 2 bytes
       int confrontoChar = compareBytes(b1, s1+l1-2, 2 , b2, s2+l2 -2, 2);
       return (thisValue<thatValue ? -1 : (thisValue==thatValue ? confrontoChar : 1));

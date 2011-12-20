@@ -95,7 +95,7 @@ public class HPhase1 {
                                 }
                                 catch (ClassCastException e){
                                     val = (SparseVectorElement) g.get();
-                                    System.out.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
+                                    System.err.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
                                 }
 				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
 

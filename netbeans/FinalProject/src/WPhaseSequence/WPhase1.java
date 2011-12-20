@@ -100,13 +100,13 @@ public class WPhase1 {
 			{
 				temp = (NMFVector) iter.next().get();
 				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
-				System.out.println("VETTORE: "+mv.toString());
+				
 
 			}
 			while (iter.hasNext())
 			{
 				val = (SparseVectorElement) iter.next().get();
-				System.out.println("SPARSE ELEMENT" + val.toString());
+				
 				if (val.getValue() != 0.0)
 				{
 					NMFVector mvEmit =  mv.ScalarProduct(val.getValue());

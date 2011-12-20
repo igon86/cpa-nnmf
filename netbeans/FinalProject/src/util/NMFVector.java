@@ -48,15 +48,14 @@ public class NMFVector implements WritableComparable<NMFVector> {
 		mv.value = new double[elementsNumber];
 
 		String[] splitted = s.split("#");
-	    System.out.println("stringa partizionata");
 
 	    for (int i = 0; i < mv.elementsNumber && i <= splitted.length; i++) {
 		mv.value[i] = new Double(splitted[i]);
-		System.out.println("Ho acquisito il " + i + "-esimo parametro");
+		
 	    }
-	    System.out.println("Valori del vettore presi");
+	    
 	} catch (NumberFormatException e) {
-	    System.out.println("Input Error reading NMFVector Value" + s);
+	    System.err.println("Input Error reading NMFVector Value" + s);
 	    mv.value = null;
             throw new IOException();
 	}
@@ -144,7 +143,6 @@ public class NMFVector implements WritableComparable<NMFVector> {
     }
 
     public String toString() {
-	System.out.println("SONO NELLA TOSTRING DI MATRIXVECTOR");
 
 	String tmp = ""+this.value[0];
 	StringBuilder stringBuilder = new StringBuilder(tmp);
