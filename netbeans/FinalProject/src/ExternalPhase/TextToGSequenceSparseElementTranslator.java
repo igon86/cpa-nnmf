@@ -3,11 +3,13 @@ package ExternalPhase;
 
 import java.io.IOException;
 
+import java.util.Iterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -32,17 +34,31 @@ public class TextToGSequenceSparseElementTranslator
 		}
 	}
 
+        public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
+
+		@Override
+		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
+		{
+                    Iterator<GenericElement> iter = values.iterator();
+
+                    while( iter.hasNext())
+                        context.write(key, iter.next());
+		}
+	}
+
 	/**
 	 * @param args
 	 *            the command line arguments
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 2)
+		if(args.length != 3)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");
 			System.err.println("Second Parameter: Output directory");
+                	System.err.println("Third Parameter: reduce number");
+
 			System.exit(-1);
 		}
 
@@ -51,11 +67,12 @@ public class TextToGSequenceSparseElementTranslator
 		Job job = new Job(conf, "Translator from Text to Sequence for the Sparse Element");
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
+                job.setReducerClass(MyReducer.class);
 
-		job.setNumReduceTasks(0);
+		job.setNumReduceTasks(new Integer(args[2]));
 
-                //job.setMapOutputKeyClass(IntWritable.class);
-		//job.setMapOutputValueClass(GenericElement.class);
+                job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputValueClass(GenericElement.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericElement.class);
 
