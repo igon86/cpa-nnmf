@@ -26,6 +26,7 @@ import util.*;
  * @author virgilid
  */
 public class HPhase5 {
+    
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, NMFVector> {
@@ -44,14 +45,9 @@ public class HPhase5 {
 		@Override
 		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
-			System.out.println("map della fase 5 VALUE" +value.toString());
-			//if(value.toString().trim().length() != 0){ //this problem must be solved
-			//    String[] values = value.toString().split("\t");
-			//    int column = Integer.parseInt(values[0]);
-
-			//    MatrixVector out = new MatrixVector(new Text(values[1]));
+			
 			    context.write(new IntAndIdWritable(key.get(),matrixId), (NMFVector) value.get());
-			//}
+			
 		}
 
 	}
@@ -78,14 +74,10 @@ public class HPhase5 {
 			{
 				val = iter.next();
 				vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
-				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
-				//if (!result.inPlaceSum(val)){
-				//    System.out.println("ERRORE nella somma di matrici");
-				//    throw new IOException("ERRORE nella somma di matrici");
-				//}
+
 			}
 			if (iter.hasNext() || i<3){ // this must throw an Exception
-			    System.out.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
+			    System.err.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
 			}
 			else{
 			    vectors[0].inPlacePointMul(vectors[1]);

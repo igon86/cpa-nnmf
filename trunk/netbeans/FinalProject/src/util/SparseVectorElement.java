@@ -52,7 +52,7 @@ public class SparseVectorElement implements WritableComparable<SparseVectorEleme
         	}
         	catch(NumberFormatException e)
         	{
-        		System.out.println("Input Error reading SparseVectorElement Value" + s);
+        		System.err.println("Input Error reading SparseVectorElement Value" + s);
         		sve.coordinate = 0;
         		sve.value = 0.0;
                         throw new IOException();

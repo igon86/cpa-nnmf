@@ -50,7 +50,7 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.out.println("Error parseLine ROW of SparseElement:" + s+"\nROW: "+splitted[0]);
+        		System.err.println("Error parseLine ROW of SparseElement:" + s+"\nROW: "+splitted[0]);
         		se.rowCoordinate = 0;
         	}
                 
@@ -60,7 +60,7 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.out.println("Error parseLine COLUMN of SparseElement:" + s+"\nCOLUMN: "+splitted[1]);
+        		System.err.println("Error parseLine COLUMN of SparseElement:" + s+"\nCOLUMN: "+splitted[1]);
 
         		se.columnCoordinate = 0;
 
@@ -73,12 +73,12 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.out.println("Error parseLine VALUE of SparseElement:" + s+"\nVALUE: "+splitted[2]);
-                        System.out.print("VALUE: ");
+        		System.err.println("Error parseLine VALUE of SparseElement:" + s+"\nVALUE: "+splitted[2]);
+                        System.err.print("VALUE: ");
                         for (int i=0; i< splitted[2].length();i++){
-                            System.out.print(splitted[2].charAt(i)+"("+(int)splitted[2].charAt(i)+")");
+                            System.err.print(splitted[2].charAt(i)+"("+(int)splitted[2].charAt(i)+")");
                         }
-                        System.out.println("FINITO");
+                        System.err.println("FINITO");
         		se.value = 0.0;
         	}
         }
