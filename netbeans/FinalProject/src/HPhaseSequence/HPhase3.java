@@ -108,7 +108,9 @@ public class HPhase3 {
 		job.setCombinerClass(MyReducer.class);
 
 		// Testing Job Options
-		//job.setNumReduceTasks(0);
+		
+                job.setNumReduceTasks(1);
+
 		job.setMapOutputKeyClass(NullWritable.class);
 		job.setMapOutputValueClass(NMFMatrix.class);
 		job.setOutputKeyClass(NullWritable.class);

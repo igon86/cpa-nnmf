@@ -73,6 +73,7 @@ public class HPhase1 {
 	}
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, GenericElement, IntWritable, NMFVector> {
+               @Override
 		protected void setup(Context context){
 		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}

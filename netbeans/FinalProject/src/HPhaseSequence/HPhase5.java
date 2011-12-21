@@ -7,15 +7,12 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
@@ -96,13 +93,15 @@ public class HPhase5 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 5)
+		if(args.length != 6)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second/Third Parameter: "
 					+ "H/X/Y files directories");
-			System.err.println("Third Parameter: Output directory");
-			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
+			System.err.println("Fourth Parameter: Output directory");
+			System.err.println("Fiveth Parameter: The factorizing parameter of the NNMF (K)");
+                        System.err.println("Sixth Parameter: reduce number");
+
 			System.exit(-1);
 		}
 
@@ -113,8 +112,6 @@ public class HPhase5 {
 		job.setJarByClass(HPhase5.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
-
-		//job.setNumReduceTasks(2);
 
 		job.setMapOutputKeyClass(IntAndIdWritable.class);
 		job.setMapOutputValueClass(NMFVector.class);
@@ -127,7 +124,7 @@ public class HPhase5 {
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		// Testing Job Options
-		job.setNumReduceTasks(2);
+		job.setNumReduceTasks(new Integer(args[5]));
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileInputFormat.addInputPath(job, new Path(args[1]));

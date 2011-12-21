@@ -45,6 +45,18 @@ public class GSequenceToTextSparseElementTranslator
 		}
 	}
 
+        public static class MyReducer extends Reducer<SparseElement, NullWritable, SparseElement, NullWritable> {
+
+		@Override
+		public void reduce(SparseElement key, Iterable<NullWritable> values, Context context) throws IOException, InterruptedException
+		{
+
+                  context.write(key, NullWritable.get());
+
+		}
+	}
+
+
 	/**
 	 * @param args
 	 *            the command line arguments
@@ -64,13 +76,16 @@ public class GSequenceToTextSparseElementTranslator
 		Job job = new Job(conf, "Translator from GSequence to Text for the Sparse Element");
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
-                //job.setReducerClass(MyReducer.class);
+                job.setReducerClass(MyReducer.class);
+                job.setReducerClass(MyReducer.class);
 
-		job.setNumReduceTasks(0);
+		job.setNumReduceTasks(1);
 
                 //job.setMapOutputKeyClass(NullWritable.class);
                 //job.setMapOutputValueClass(SparseElement.class);
-		job.setOutputKeyClass(SparseElement.class);
+		job.setMapOutputKeyClass(SparseElement.class);
+		job.setMapOutputValueClass(NullWritable.class);
+                job.setOutputKeyClass(SparseElement.class);
 		job.setOutputValueClass(NullWritable.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 
