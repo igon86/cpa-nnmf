@@ -28,6 +28,7 @@ public class HPhase4 {
 
         private static NMFMatrix WW = new NMFMatrix();
 
+        @Override
         protected void setup(Context context) throws IOException
 		{
 	    			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
@@ -86,6 +87,7 @@ public class HPhase4 {
 
         }
 
+        @Override
         public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
 			NMFVector mv = (NMFVector) value.get();

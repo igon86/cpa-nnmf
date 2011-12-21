@@ -11,7 +11,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
@@ -23,6 +22,7 @@ import util.*;
 public class HPhase2{
 
 	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, GenericElement> {
+                @Override
 		protected void setup(Context context){
 		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
@@ -40,9 +40,11 @@ public class HPhase2{
 	}
 
 	public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
+        @Override
 		protected void setup(Context context){
 		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
+        @Override
 		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
@@ -72,12 +74,14 @@ public class HPhase2{
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
 			System.err.println("Third Parameter: The factorizing parameter of the NNMF (K)");
+                        System.err.println("Fourth Parameter: reduce number");
+
 			System.exit(-1);
 		}
 
@@ -99,7 +103,7 @@ public class HPhase2{
 
 		job.setCombinerClass(MyReducer.class);
 		// Testing Job Options
-		job.setNumReduceTasks(2);
+		job.setNumReduceTasks(new Integer(args[3]));
 		
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		//TextInputFormat.addInputPath(job, new Path(args[0]));
