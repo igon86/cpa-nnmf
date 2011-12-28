@@ -16,6 +16,10 @@ public class NMFVector implements WritableComparable<NMFVector> {
 	elementsNumber = value;
     }
 
+    public void setArray(double[] a){
+        this.value = a;
+    }
+
     public NMFVector(int element_number, double[] elements) {
 	//this.elementsNumber = element_number;
 	this.value = elements;
