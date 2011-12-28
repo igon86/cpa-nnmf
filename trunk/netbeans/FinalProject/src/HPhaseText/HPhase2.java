@@ -19,8 +19,14 @@ import util.*;
  */
 public class HPhase2{
 
-    /* The output values must be text in order to distinguish the different data types */
     public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFVector> {
+
+        		@Override
+		protected void setup(Context context) throws IOException
+		{
+                    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		
+		}
 
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 	    String[] input = value.toString().split("\t");
@@ -30,7 +36,7 @@ public class HPhase2{
 	    try {
 		column = Integer.parseInt(input[0]);
 	    } catch (NumberFormatException e) {
-		System.out.println("Problem parsing the key: "+input[0].trim());
+		System.err.println("Problem parsing the key: "+input[0].trim());
 		throw new IOException(e.toString());
 	    }
 	    context.write(new IntWritable(column), NMFVector.parseLine(input[1]));
@@ -39,6 +45,12 @@ public class HPhase2{
     }
 
 	public static class MyReducer extends Reducer<IntWritable, NMFVector, IntWritable, NMFVector> {
+
+            		@Override
+		protected void setup(Context context) throws IOException
+		{
+                    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 
 		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
 		{
@@ -68,15 +80,18 @@ public class HPhase2{
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 2)
+		if(args.length != 3)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
+                        System.err.println("Third Parameter: K ");
 			System.exit(-1);
 		}
 
 		Configuration conf = new Configuration();
+                conf.setInt("elementsNumber", Integer.parseInt(args[2]));
+
 
 		Job job = new Job(conf, "MapRed Step2");
 		job.setJarByClass(HPhase2.class);

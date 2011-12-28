@@ -42,9 +42,7 @@ public class HPhase5 {
 		@Override
 		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
 		{
-			
-			    context.write(new IntAndIdWritable(key.get(),matrixId), (NMFVector) value.get());
-			
+			    context.write(new IntAndIdWritable(key.get(),matrixId), (NMFVector) value.get());	
 		}
 
 	}

@@ -33,6 +33,11 @@ public class IntAndIdWritable extends IntWritable {
 	this.id = charValue;
     }
 
+    public void set(int intValue, char charValue ){
+        this.set(intValue);
+        this.id = charValue;
+    }
+
     @Override
     public void readFields(DataInput in) throws IOException
     {
