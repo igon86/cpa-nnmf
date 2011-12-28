@@ -24,6 +24,9 @@ public class SequenceToTextMatrixWHTranslator
 {
 	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, NMFVector> {
 
+                protected void setup(Context context){
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
 		@Override
 		public void map(IntWritable key, NMFVector values, Context context) throws IOException, InterruptedException
 		{
@@ -37,15 +40,17 @@ public class SequenceToTextMatrixWHTranslator
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 2)
+		if(args.length != 3)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
+                        System.err.println("Third Parameter: k");
 			System.exit(-1);
 		}
 
 		Configuration conf = new Configuration();
+				conf.setInt("elementsNumber", Integer.parseInt(args[2]));
 
 		Job job = new Job(conf, "Translator from Sequence to Text for the H/W Matrix");
 		job.setJarByClass(SequenceToTextMatrixWHTranslator.class);
