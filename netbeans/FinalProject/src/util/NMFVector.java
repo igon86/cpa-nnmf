@@ -41,7 +41,7 @@ public class NMFVector implements WritableComparable<NMFVector> {
 
     static private void parseLine(String s, NMFVector mv) throws IOException {
 
-	if (elementsNumber == 0) throw new IOException("fail read fields");
+	if (elementsNumber == 0) throw new IOException("Fail read fields: maybe you did not setup the k parameter of this NMFVector instance");
 
 	try {
 
@@ -113,7 +113,7 @@ public class NMFVector implements WritableComparable<NMFVector> {
     @Override
     public void readFields(DataInput arg0) throws IOException {
 	//this.elementsNumber = arg0.readInt();
-	if (elementsNumber == 0) throw new IOException("fail read fields");
+	if (elementsNumber == 0) throw new IOException("fail read fields: maybe you did not setup the k parameter of this NMFVector instance");
 	this.value = new double[this.elementsNumber];
 	for (int i = 0; i < this.elementsNumber; i++) {
 	    this.value[i] = arg0.readDouble();

@@ -1,4 +1,3 @@
-
 package HPhaseText;
 
 import java.util.Iterator;
@@ -24,112 +23,113 @@ import util.*;
  */
 public class HPhase5 {
 
-	/* The output values must be text in order to distinguish the different data types */
-	public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, NMFVector> {
+    /* The output values must be text in order to distinguish the different data types */
+    public static class MyMapper extends Mapper<LongWritable, Text, IntAndIdWritable, NMFVector> {
 
-		char matrixId;
-		@Override
-		protected void setup(Context context) throws IOException
-		{
-			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
-			System.out.println("FOLDERNAME: " +folderName);
-			matrixId = folderName.charAt(0);
-		}
+        char matrixId;
 
-		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
-		{
-			System.out.println("map della fase 5 VALUE" +value.toString());
-			//if(value.toString().trim().length() != 0){ //this problem must be solved
-			    String[] values = value.toString().split("\t");
-			    int column = Integer.parseInt(values[0]);
+        @Override
+        protected void setup(Context context) throws IOException {
+            NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
-			    NMFVector out = new NMFVector(new Text(values[1]));
+            String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
+            System.out.println("FOLDERNAME: " + folderName);
+            matrixId = folderName.charAt(0);
+        }
 
-			    context.write(new IntAndIdWritable(column,matrixId), out);
-			//}
-		}
+        @Override
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            //System.out.println("map della fase 5 VALUE" + value.toString());
+            String[] values = value.toString().split("\t");
+            int column = Integer.parseInt(values[0]);
 
-	}
+            NMFVector out = new NMFVector(new Text(values[1]));
 
-	/**
-	 * null writable is used in order to serialize a MatrixMatrix only
-	 */
-	public static class MyReducer extends Reducer<IntAndIdWritable, NMFVector, IntWritable, NMFVector> {
+            context.write(new IntAndIdWritable(column, matrixId), out);
+        }
+    }
 
-		@Override
-		public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
-		{
-			// reduce should receive H,X,Y vector exactly in this order AND nothing else
-			NMFVector[] vectors = new NMFVector[3];
-			NMFVector val = null;
+    /**
+     * null writable is used in order to serialize a MatrixMatrix only
+     */
+    public static class MyReducer extends Reducer<IntAndIdWritable, NMFVector, IntWritable, NMFVector> {
 
-			Iterator<NMFVector> iter = values.iterator();
+        @Override
+        protected void setup(Context context) throws IOException {
+            NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+        }
+                
+        @Override
+        public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException {
+            // reduce should receive H,X,Y vector exactly in this order AND nothing else
+            NMFVector[] vectors = new NMFVector[3];
+            NMFVector val = null;
 
-			int i = 0;
-			while (iter.hasNext() && i <3)
-			{
-				val = iter.next();
-				vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
-				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
-				//if (!result.inPlaceSum(val)){
-				//    System.out.println("ERRORE nella somma di matrici");
-				//    throw new IOException("ERRORE nella somma di matrici");
-				//}
-			}
-			if (iter.hasNext() || i<3){ // this must throw an Exception
-			    System.out.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
-			}
-			else{
-			    vectors[0].inPlacePointMul(vectors[1]);
-			    vectors[0].inPlacePointDiv(vectors[2]);
-			    context.write(new IntWritable(key.get()), vectors[0]);
-			}
-			
-		}
-	}
+            Iterator<NMFVector> iter = values.iterator();
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 4)
-		{
-			System.err.println("The number of the input parameter are not corrected");
-			System.err.println("First/Second/Third Parameter: "
-					+ "H/X/Y files directories");
-			System.err.println("Third Parameter: Output directory");
-			System.exit(-1);
-		}
+            int i = 0;
+            while (iter.hasNext() && i < 3) {
+                val = iter.next();
+                vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
+                //System.out.println("REDUCE: ho ricevuto: "+val.toString());
+                //if (!result.inPlaceSum(val)){
+                //    System.out.println("ERRORE nella somma di matrici");
+                //    throw new IOException("ERRORE nella somma di matrici");
+                //}
+            }
+            if (iter.hasNext() || i < 3) { // this must throw an Exception
+                System.err.println("SONO il reducer della key: " + key.toString() + " e ho ricevuto " + i + " valori");
+            } else {
+                vectors[0].inPlacePointMul(vectors[1]);
+                vectors[0].inPlacePointDiv(vectors[2]);
+                context.write(new IntWritable(key.get()), vectors[0]);
+            }
 
-		Configuration conf = new Configuration();
+        }
+    }
 
-		Job job = new Job(conf, "MapRed Step5");
-		job.setJarByClass(HPhase5.class);
-		job.setMapperClass(MyMapper.class);
-		job.setReducerClass(MyReducer.class);
+    /**
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) throws Exception {
+        if (args.length != 5) {
+            System.err.println("The number of the input parameter are not corrected");
+            System.err.println("First/Second/Third Parameter: "
+                    + "H/X/Y files directories");
+            System.err.println("Fourth Parameter: Output directory");
+            System.err.println("Fifth Parameter: K");
 
-		//job.setNumReduceTasks(2);
+            System.exit(-1);
+        }
 
-		job.setMapOutputKeyClass(IntAndIdWritable.class);
-		job.setMapOutputValueClass(NMFVector.class);
-		job.setOutputKeyClass(IntWritable.class);
-		job.setOutputValueClass(NMFVector.class);
-
-		job.setGroupingComparatorClass(IntWritable.Comparator.class);
-
-		// Testing Job Options
+        Configuration conf = new Configuration();
+        conf.setInt("elementsNumber", Integer.parseInt(args[4]));
 
 
-		TextInputFormat.addInputPath(job, new Path(args[0]));
-		TextInputFormat.addInputPath(job, new Path(args[1]));
-		TextInputFormat.addInputPath(job, new Path(args[2]));
+        Job job = new Job(conf, "MapRed Step5");
+        job.setJarByClass(HPhase5.class);
+        job.setMapperClass(MyMapper.class);
+        job.setReducerClass(MyReducer.class);
 
-		FileOutputFormat.setOutputPath(job, new Path(args[3]));
+        //job.setNumReduceTasks(2);
 
-		job.waitForCompletion(true);
-	}
+        job.setMapOutputKeyClass(IntAndIdWritable.class);
+        job.setMapOutputValueClass(NMFVector.class);
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(NMFVector.class);
+
+        job.setGroupingComparatorClass(IntWritable.Comparator.class);
+
+        // Testing Job Options
+
+
+        TextInputFormat.addInputPath(job, new Path(args[0]));
+        TextInputFormat.addInputPath(job, new Path(args[1]));
+        TextInputFormat.addInputPath(job, new Path(args[2]));
+
+        FileOutputFormat.setOutputPath(job, new Path(args[3]));
+
+        job.waitForCompletion(true);
+    }
 }
-

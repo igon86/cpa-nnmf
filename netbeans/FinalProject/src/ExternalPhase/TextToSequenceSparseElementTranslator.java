@@ -49,7 +49,7 @@ public class TextToSequenceSparseElementTranslator
 		job.setJarByClass(TextToSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
 
-		//job.setNumReduceTasks(0);
+		job.setNumReduceTasks(0);
 
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(SparseVectorElement.class);
