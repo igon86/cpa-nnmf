@@ -8,16 +8,29 @@
 \usepackage{amsfonts}
 \usepackage{listings}
 \usepackage{fancyhdr}
-
+\usepackage{color}
 \usepackage{url}
+%o questo?
 \usepackage{natbib}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{mydef}{Definition}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+%\theoremstyle{plain}
+\usepackage[font=small,format=hang,labelfont={sf,bf}]{caption}
 
 
 %%{\wbalsup}[1] {This is the Wikibook about LaTeX supported by #1}
 
 \newcommand{\METHOD}[1] {\textit{#1}}
 \newcommand{\CLASS}[1] {\textit{#1}}
+\newcommand{\nmf}{\textit{NMF}}
 
+\newcommand{\commento}[1]{\begin{color}{white}\colorbox{black}{
+	\textit{\textbf{==) \texttt{ [#1] (==}}}}\end{color}
+}
 \setpapersize{A4}
 %%\setmarginsrb{35mm}{35mm}{25mm}{35mm}{0pt}{10mm}{0pt}{5mm} %leftmargin,topmargin,rightmargin,bottom, ...
 \linespread{1.25}
@@ -31,50 +44,64 @@
 \maketitle
 %\tableofcontent
 
-\section{Abstract}
+\begin{abstract}
 
+The scope of this project is to implement the Non Negative Matrix Factorization algorithm with multiplicative update as presented in \citep{liu2010}.
+The algorithm is implemented in a Map Reduce fashion using the Apace Hadoop framework.
+We will not cover algorithmic details, we will focus instead on the implementation of the multiplicative update method in Hadoop and study its scalability.
+The Non Negative Matrix Factorization family of algorithms is presented in Section \ref{nmf} with a particular interest on the  implemented method of multiplicative update. 
+A general outline of a Map Reduce implementation is presented in Section \ref{mapreduce} while implementations details are presented in Section \ref{implementation}.
+Final results and outlines for a future work are presented in Section \ref{result} and Section \ref{conclusion}.
+
+\end{abstract}
 
 \section{Non Negative Matrix Factorization}
+\label{nmf}
 
-The non negative matrix factorization is a group of algorithm of linear algebra such that a initial matrix A is factorized in two matrix W and H. The matrix A's elements must be non negative (greater or equal by 0) by assumption. The achieved factorization has the property of $ A \simeq W H $ and both the matrices W and H are also non negative. 
-This factorization is in general not unique, in fact, let assume that $W_1$ and $H_1$ are a factorization of the matrix A, it's possible to find another factorization using a matrix $L$ and its inverse: $A = W_1 H_1 = ( W L ) (L^{-1} H) = W_2 H_2  $. 
+Non Negative Matrix Factorization algorithms (NMF) are a group of numerical algorithms for matrix factorization.
+A matrix A is factorized by a NMF algorithm in two matrix W and H. 
+The matrix A's elements must be non negative (greater or equal by 0) by assumption. 
+The factorization has the property of $ A \simeq W H $ and both the matrices W and H are also non negative. 
+This factorization is in general not unique, in fact, let assume that $W_1$ and $H_1$ are a factorization of the matrix A, it's possible to find another factorization using a matrix $L$ and its inverse: $A \simeq W_1 H_1 = ( W L ) (L^{-1} H) = W_2 H_2  $. 
 
 The non negative matrix factorization problem can be formulated as follows:
-
-%%\begin{quotation}
-
-\begin{center}
-  ``Given a non negative matrix $A \in \mathbb{R}^{m×n}$ and a positive integer $k<min\{m,~n\} $, find non 	
+\begin{mydef} \textbf{Non Negative Matrix Factorization}
+  Given a non negative matrix $A \in \mathbb{R}^{m×n}$ and a positive integer $k<min\{m,~n\} $, find non 	
   	negative matrices $W \in R^{m×k}$ and $H \in R^{k×n}$ to minimize the function  
   	$$ f ( W , H ) = \frac{1}{2} || A − W H ||_F^2$$ where $F$ is the Frobenious norm defined as
-  	$|| X ||_F = ( \sum_i \sum_j( |x_{i,j}|^2 ) )^{1/2}$. ''
-\end{center}
+  	$|| X ||_F = ( \sum_i \sum_j( |x_{i,j}|^2 ) )^{1/2}$. 
+  	\label{def:nmf}
+\end{mydef}
 
-%%\end{quotation}
 
-In this way, the product of W and H is not exactly equal to A but is an approximation. The problem formulation said that the norm of the residual matrix ($D = A - WH$) must be minimized in order the find a better approximation. Furthermore, choosing a $K$ less than $\frac{m * n}{m + n} $ the space needed to store the matrix decrease.
+In this way, the product of W and H is not exactly equal to A but is an approximation. The problem formulation said that the norm of the residual matrix ($D = A - WH$) must be minimized in order the find a better approximation. Furthermore, choosing a $K$ less than \commento{cazzo \`e sta roba?}$\frac{m * n}{m + n} $ the space needed to store the matrix decrease.
 
 
 The Non Negative Matrix Factorization (NMF) is a conical coordinate transformation\cite{Nikolaus07learningthe} where the $W$ matrix describe the basis vector and all the element in the dataset are enclosed in the cone identified by W. Each element, being in the cone, can be expressed as positive linear combinations of vectors in W. The NMF is equivalent to a relaxed form of K-means clustering where the matrix W contains cluster centroids and H contains cluster membership indicators when least square function is used as estimator of the distance.
 
 
 As said before, the non negative matrix factorization is a group of algorithm. The algorithm used in this project is the Multiplicative Update Algorithm but there exist other type of algorithm such as the Gradient Descendent Algorithm and Alternating Least Square Algorithm. 
+\commento{DESCENDENT? eppoi manca le ref}
 
-The Multiplicative Update Algorithm converge to a point that can or cannot be the global minimum and it's impossible to determine unless a better solution is found. A big issue in this problem rely on the initial generation of the W and H matrices: depending on the initial matrices choice the algorithm can converge to a local minimum rather than to another one. The code of the algorithm is listed bellow in a using the MathLab array operator notation.
-
+The code of the algorithm is listed bellow in a using the MathLab array operator notation.
+\commento{bruttissimo sto listing}
 \begin{lstlisting}[language=Matlab]
 W = rand(m,k);	% initialize W as random dense matrix 
 H = rand(k,n);	% initialize H as random dense matrix 
 
 for i = 1 : number_of_iteration
-	H = H .* (W^T A) ./ (W^T W H);
-	W = W .* (A H^T) ./ (W H H^T);
+	H = H .* (W' * A) ./ (W' * W * H);
+	W = W .* (A * H') ./ (W * H * H');
 end
 \end{lstlisting}
+
 The .* and ./ operators stand for the multiplication and the division element by element in the matrix. \\
 
+The Multiplicative Update Algorithm generally converge to a point that is not the global minimum of $f(W,H)$ (Definition \ref{def:nmf}).
+Moreover, given a pair $(W_1,H_1)$, it is also not possible to determine if $\exists \; (W_2,H_2) \; . \;f(W_2,H_2) \leq f(W_1,H_1)$, unless such a pair $(W_2,H_2)$ is found by applying the method with different initial conditions. 
+Therefore, current research on \nmf family of algorithms focus on how to choose initial factors in order to discover a global minimum.
 
-Current research on Non Negative Matrix Factorization regards:
+More precisely, current research on Non Negative Matrix Factorization regards:
 \begin{itemize}
   \item Algorithmic -- How the factors and factor initialization can discover a global minimum instead a local minimum and speed-up the convergence process.
    \item Scalability -- How the problem can scale when the dimension of the matrix increase.
@@ -84,9 +111,9 @@ Current research on Non Negative Matrix Factorization regards:
 As obvious, we focus on the second problem.
 
 \section{Map Reduce Algorithm \cite{liu2010}}
+\label{mapreduce}
 
-The multiplicative update formula used works in the case
-in which the distribution of the internal elements is Gaussian
+The multiplicative update formula used works in the case in which the distribution of the internal elements is Gaussian
 distributed. 
 In order to analyse the map reduce algorithm we split it in in two
 phase:
@@ -243,6 +270,7 @@ phase:
 In our project, as its done in the paper, we assume that the matrix that we need to factorized is a sparse matrix. So an appropriate internal representation can be used specifing element by element in the A matrix.
 
 \section{Implementation}
+\label{implementation}
 
 In this section we analysed the main implementation choices, specifying the Hadoop's key features used.
 
@@ -303,9 +331,10 @@ most of the phase remain unchanged.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 \section{Result}
+\label{result}
 
 \section{Conclusion}
-
+\label{conclusion}
 
 
 \nocite{*}
