@@ -21,45 +21,61 @@ import util.*;
  */
 public class HPhase2{
 
-	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, GenericElement> {
+	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, NMFVector> {
                 @Override
 		protected void setup(Context context){
 		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
-		@Override
-		public void map(IntWritable key, NMFVector value, Context context) throws IOException, InterruptedException
-		{
-			/**wraps the matrix vector */
-			GenericElement out = new GenericElement();
-			out.set(value);
-
-			context.write(key, out);
-
-		}
-
 	}
 
-	public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
-        @Override
+        public static class MyCombiner extends Reducer<IntWritable, NMFVector, IntWritable, NMFVector> {
+                @Override
 		protected void setup(Context context){
 		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
-        @Override
-		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
+                        @Override
+		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
 		{
 			/* The array contains the the row vector once the w row vector is read */
 			NMFVector mv,result = null;
 
-			Iterator<GenericElement> iterator = values.iterator();
+			Iterator<NMFVector> iterator = values.iterator();
 			if(iterator.hasNext())
 			{
-				mv = (NMFVector) iterator.next().get();
+				mv = iterator.next();
 				result = new NMFVector(mv.getNumberOfElement(),mv.getValues().clone());
 			}
 
 			while(iterator.hasNext())
 			{
-				mv = (NMFVector) iterator.next().get();
+				mv = iterator.next();
+				result.inPlaceSum(mv);
+			}
+			context.write(key,result);
+		}
+	}
+
+	public static class MyReducer extends Reducer<IntWritable, NMFVector, IntWritable, GenericElement> {
+        @Override
+		protected void setup(Context context){
+		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
+        @Override
+		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
+		{
+			/* The array contains the the row vector once the w row vector is read */
+			NMFVector mv,result = null;
+
+			Iterator<NMFVector> iterator = values.iterator();
+			if(iterator.hasNext())
+			{
+				mv = iterator.next();
+				result = new NMFVector(mv.getNumberOfElement(),mv.getValues().clone());
+			}
+
+			while(iterator.hasNext())
+			{
+				mv = iterator.next();
 				result.inPlaceSum(mv);
 			}
 			GenericElement out = new GenericElement();
@@ -94,14 +110,14 @@ public class HPhase2{
 		job.setReducerClass(MyReducer.class);
 
 		job.setMapOutputKeyClass(IntWritable.class);
-		job.setMapOutputValueClass(GenericElement.class);
+		job.setMapOutputValueClass(NMFVector.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericElement.class);
 		
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-		job.setCombinerClass(MyReducer.class);
+		job.setCombinerClass(MyCombiner.class);
 		// Testing Job Options
 		job.setNumReduceTasks(new Integer(args[3]));
 		
