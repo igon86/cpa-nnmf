@@ -66,8 +66,8 @@ public class HPhase1 {
 			{
 
 				context.write(new IntAndIdWritable(key.get(),'a'), value);
-                                }
-			}
+                        }
+		}
                 //lower case is usefull for the ordering of the key
 
 	}

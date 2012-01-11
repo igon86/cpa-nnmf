@@ -129,7 +129,7 @@ public class HPhase1 {
 		Configuration conf = new Configuration();
                 conf.setInt("elementsNumber", Integer.parseInt(args[3]));
 
-		Job job = new Job(conf, "MapRed Step1 TEXT");
+		Job job = new Job(conf, "MapRed Step1 TEXT ");
 		job.setJarByClass(HPhase1.class);
 		job.setMapperClass(MyMapper.class);
 		job.setReducerClass(MyReducer.class);
