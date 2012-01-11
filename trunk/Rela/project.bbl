@@ -12,10 +12,19 @@ Michael~W. Berry, Murray Browne, Amy~N. Langville, V.~Paul Pauca, and Robert~J.
 \newblock In {\em Computational Statistics and Data Analysis}, volume Volume
   52, pages 155--173, 2006.
 
+\bibitem{least}
+H.~Kim and H.~Park.
+\newblock Nonnegative matrix factorization based on alternating nonnegativity
+  constrained least squares and active set method.
+
 \bibitem{Lee01algorithmsfor}
 Daniel~D. Lee and H.~Sebastian Seung.
 \newblock Algorithms for non-negative matrix factorization.
 \newblock In {\em In NIPS}, pages 556--562. MIT Press, 2001.
+
+\bibitem{gradient}
+Chih-Jen Lin.
+\newblock Projected gradient methods for non-negative matrix factorization.
 
 \bibitem{liu2010}
 Chao Liu, Hung-chih Yang, Jinliang Fan, Li-Wei He, and Yi-Min Wang.

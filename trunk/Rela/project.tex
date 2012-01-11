@@ -35,6 +35,28 @@
 %%\setmarginsrb{35mm}{35mm}{25mm}{35mm}{0pt}{10mm}{0pt}{5mm} %leftmargin,topmargin,rightmargin,bottom, ...
 \linespread{1.25}
 
+\lstdefinestyle{matlab}{
+    	language=Matlab, 							% choose the language of the code
+		basicstyle=\footnotesize,       			% the size of the fonts that are used for the code
+		%numbers=left,                   			% where to put the line-numbers
+		%numberstyle=\tiny,      					% the size of the fonts that are used for the line-numbers
+		stepnumber=4,                   			% the step between two line-numbers. If it's 1 each line will be numbered
+		numbersep=4pt,                  			% how far the line-numbers are from the code
+		backgroundcolor=\color{white},  	% choose the background color. You must add \usepackage{color}
+		showspaces=false,               			% show spaces adding particular underscores
+		showstringspaces=false,         		% underline spaces within strings
+		showtabs=false,                 				% show tabs within strings adding particular underscores
+		frame=shadowbox,							% display a frame around the code
+		tabsize=4,                      					% sets default tabsize to 2 spaces
+		captionpos=b,                   				% sets the caption-position to bottom
+		breaklines=true,                				% sets automatic line breaking
+		breakatwhitespace=false,        		% sets if automatic breaks should only happen at whitespace
+		escapeinside={(*@}{@*)},          		% if you want to add a comment within your code
+		% added by max
+		mathescape=true,					
+		columns=flexible,
+}
+
 %opening
 \title{Hadoop Project: Non Negative Matrix Factorization}
 \author{Lottarini Andrea \\ Virgilio Daniele}
@@ -47,6 +69,7 @@
 \begin{abstract}
 
 The scope of this project is to implement the Non Negative Matrix Factorization algorithm with multiplicative update as presented in \citep{liu2010}.
+The main application of this algorithm is for Text Mining \cite{05abstractemail}.
 The algorithm is implemented in a Map Reduce fashion using the Apace Hadoop framework.
 We will not cover algorithmic details, we will focus instead on the implementation of the multiplicative update method in Hadoop and study its scalability.
 The Non Negative Matrix Factorization family of algorithms is presented in Section \ref{nmf} with a particular interest on the  implemented method of multiplicative update. 
@@ -74,28 +97,28 @@ The non negative matrix factorization problem can be formulated as follows:
 \end{mydef}
 
 
-In this way, the product of W and H is not exactly equal to A but is an approximation. The problem formulation said that the norm of the residual matrix ($D = A - WH$) must be minimized in order the find a better approximation. Furthermore, choosing a $K$ less than \commento{cazzo \`e sta roba?}$\frac{m * n}{m + n} $ the space needed to store the matrix decrease.
+In this way, the product of W and H is not exactly equal to A but is an approximation. 
+Obviously, the smaller is the norm of the residual matrix ($D = A - WH$), the better is the approximation. 
+Furthermore, by choosing a $K$ less than $\frac{m * n}{m + n} $ the space needed to store the matrix decrease.
 
 
 The Non Negative Matrix Factorization (NMF) is a conical coordinate transformation\cite{Nikolaus07learningthe} where the $W$ matrix describe the basis vector and all the element in the dataset are enclosed in the cone identified by W. Each element, being in the cone, can be expressed as positive linear combinations of vectors in W. The NMF is equivalent to a relaxed form of K-means clustering where the matrix W contains cluster centroids and H contains cluster membership indicators when least square function is used as estimator of the distance.
 
 
-As said before, the non negative matrix factorization is a group of algorithm. The algorithm used in this project is the Multiplicative Update Algorithm but there exist other type of algorithm such as the Gradient Descendent Algorithm and Alternating Least Square Algorithm. 
-\commento{DESCENDENT? eppoi manca le ref}
+As said before, the non negative matrix factorization is a group of algorithm. The algorithm used in this project is the Multiplicative Update Algorithm but there exist other type of algorithm such as the Gradient Descent algorithm\cite{gradient} and Alternating Least Square Algorithm\cite{least}. 
 
-The code of the algorithm is listed bellow in a using the MathLab array operator notation.
-\commento{bruttissimo sto listing}
-\begin{lstlisting}[language=Matlab]
+The code of the algorithm is listed below using MatLab syntax.
+\begin{lstlisting}[style=matlab,label=code:nmf,caption=Pseudocode of the multiplicative update algorithm. The .* and ./ operators stand for element by element multiplication and division.]
+function [W,H] = nmf(A)
+
 W = rand(m,k);	% initialize W as random dense matrix 
 H = rand(k,n);	% initialize H as random dense matrix 
 
-for i = 1 : number_of_iteration
+for i = 1 : number_of_iterations
 	H = H .* (W' * A) ./ (W' * W * H);
 	W = W .* (A * H') ./ (W * H * H');
 end
 \end{lstlisting}
-
-The .* and ./ operators stand for the multiplication and the division element by element in the matrix. \\
 
 The Multiplicative Update Algorithm generally converge to a point that is not the global minimum of $f(W,H)$ (Definition \ref{def:nmf}).
 Moreover, given a pair $(W_1,H_1)$, it is also not possible to determine if $\exists \; (W_2,H_2) \; . \;f(W_2,H_2) \leq f(W_1,H_1)$, unless such a pair $(W_2,H_2)$ is found by applying the method with different initial conditions. 
@@ -110,21 +133,20 @@ More precisely, current research on Non Negative Matrix Factorization regards:
 
 As obvious, we focus on the second problem.
 
-\section{Map Reduce Algorithm \cite{liu2010}}
+\section{Map Reduce Algorithm }
 \label{mapreduce}
 
-The multiplicative update formula used works in the case in which the distribution of the internal elements is Gaussian
-distributed. 
-In order to analyse the map reduce algorithm we split it in in two
-phase:
-\begin{itemize}
-  \item \subsection{Computation of the updated H Matrix}
+For our implementation we assumed that the distribution of the values of the input matrix was gaussian\cite{liu2010}.
+If this is the case the computation has the form of Listing \ref{code:nmf}.
+Now we have to discuss how this rather simple algorithm can be implemented in Map Reduce \cite{liu2010}.
+In order to do so we will consider separately the update of the $\mathcal{W}$ and the $\mathcal{H}$ matrix.
+
+ \subsection{Update of the H Matrix}
     The resulting matrix can be computed obtaining 2 auxiliary
     matrixes that help in the computation of the updated matrix. So,
     the algorithm can be divided in three main phases, where are
     computed:
-    \begin{itemize}
-      \item \subsubsection{$ X = W^T * A $}
+  \subsubsection{$ X = W^T * A $}
         This schema can be used to multiply any two giant matrices when one
         is sparse ad the other is narrow. Let $x_j$ denote the $j^{th}$ column of X, then 
         $$ x_j = \sum_{i=1}^{m} A_{i,j} w_{i}^{T} = \sum_{i \in \mathbb{O}_i} A_{i,j} w_{i}^{T} $$ 
@@ -152,7 +174,7 @@ phase:
          \end{itemize}
 
 
-     \item \subsubsection{$ Y = W^T * W * H $}
+     \subsubsection{$ Y = W^T * W * H $}
        It's wise to compute Y by first computing $C= W^T W$ and then
        $Y=CH$ because it maximizes the parallelism while requiring
        fewer multiplications than $Y= W^T (W H)$. With the partitioning
@@ -179,7 +201,7 @@ phase:
        \end{itemize}
 
 
-     \item \subsubsection{$ X = H .* X ./ Y $}
+     \subsubsection{$ X = H .* X ./ Y $}
        \begin{itemize}
 
        \item MAP-V: Map $\langle j, h_j \rangle$, $\langle j, x_j
@@ -193,9 +215,8 @@ phase:
 
           \end{itemize}
 
-     \end{itemize}
 	
-	\item \subsection{Computation of the updated W Matrix}
+	\subsection{Computation of the updated W Matrix}
     This phase is very similar to the one described in the above
     phase.
 
@@ -262,7 +283,6 @@ phase:
     \end{itemize}
 
 
-\end{itemize}
 
 
 \section{Assumption}
