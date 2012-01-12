@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package ExternalPhase;
 
 import util.NMFVector;
@@ -21,45 +20,42 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import util.GenericElement;
 
+public class GSequenceToTextMatrixWHTranslator {
 
-public class GSequenceToTextMatrixWHTranslator
-{
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntWritable, NMFVector> {
-        @Override
-		protected void setup(Context context){
-		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
-		}
+
 		@Override
-		public void map(IntWritable key, GenericElement values, Context context) throws IOException, InterruptedException
-		{
+		protected void setup(Context context) {
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
+
+		@Override
+		public void map(IntWritable key, GenericElement values, Context context) throws IOException, InterruptedException {
 			context.write(key, (NMFVector) values.get());
 		}
 	}
 
-         public static class MyReducer extends Reducer<IntWritable, NMFVector, IntWritable, NMFVector> {
-        @Override
-                protected void setup(Context context){
-		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
-		}
-		@Override
-		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
-		{
+	public static class MyReducer extends Reducer<IntWritable, NMFVector, IntWritable, NMFVector> {
 
-                    Iterator<NMFVector> iter = values.iterator();
-                    while(iter.hasNext())
-                        context.write(key, iter.next());
+		@Override
+		protected void setup(Context context) {
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
+
+		@Override
+		public void reduce(IntWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException {
+
+			Iterator<NMFVector> iter = values.iterator();
+			while (iter.hasNext()) {
+				context.write(key, iter.next());
+			}
 
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 3)
-		{
+
+	public static void main(String[] args) throws Exception {
+		if (args.length != 3) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
@@ -69,13 +65,13 @@ public class GSequenceToTextMatrixWHTranslator
 
 		Configuration conf = new Configuration();
 		conf.setInt("elementsNumber", Integer.parseInt(args[2]));
-		
+
 		Job job = new Job(conf, "Translator from Sequence to Text for the H/W Matrix");
 		job.setJarByClass(GSequenceToTextMatrixWHTranslator.class);
 		job.setMapperClass(MyMapper.class);
-                job.setReducerClass(MyReducer.class);
+		job.setReducerClass(MyReducer.class);
 
-                job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputKeyClass(IntWritable.class);
 		job.setMapOutputValueClass(NMFVector.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(NMFVector.class);

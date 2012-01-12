@@ -12,16 +12,11 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import util.*;
 
-/**
- *
- * @author virgilid
- */
 public class HPhase3 {
 
     /* The output values must be text in order to distinguish the different data types */
@@ -52,6 +47,7 @@ public class HPhase3 {
      */
     public static class MyReducer extends Reducer<IntWritable, NMFMatrix, NullWritable, NMFMatrix> {
 
+		@Override
         protected void setup(Context context) {
             NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
@@ -86,10 +82,6 @@ public class HPhase3 {
         }
     }
 
-    /**
-     * @param args
-     *            the command line arguments
-     */
     public static void main(String[] args) throws Exception {
         if (args.length != 3) {
             System.err.println("The number of the input parameter are not corrected");

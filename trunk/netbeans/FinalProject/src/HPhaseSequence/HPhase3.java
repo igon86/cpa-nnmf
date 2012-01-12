@@ -1,4 +1,3 @@
-
 package HPhaseSequence;
 
 import java.util.Iterator;
@@ -18,21 +17,18 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import util.*;
 
-/**
- *
- * @author virgilid
- */
 public class HPhase3 {
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, NullWritable, NMFMatrix> {
-	@Override
-		protected void setup(Context context){
+
+		@Override
+		protected void setup(Context context) {
 			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
+
 		@Override
-		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
-		{
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException {
 			NMFVector mv = (NMFVector) value.get();
 			NMFMatrix result = mv.externalProduct(mv);
 
@@ -41,41 +37,40 @@ public class HPhase3 {
 			context.write(NullWritable.get(), result);
 
 		}
-
 	}
 
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
 	public static class MyReducer extends Reducer<NullWritable, NMFMatrix, NullWritable, NMFMatrix> {
-	@Override
-		protected void setup(Context context){
+
+		@Override
+		protected void setup(Context context) {
 			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
+
 		@Override
-		public void reduce(NullWritable key, Iterable<NMFMatrix> values, Context context) throws IOException, InterruptedException
-		{
+		public void reduce(NullWritable key, Iterable<NMFMatrix> values, Context context) throws IOException, InterruptedException {
 			NMFMatrix result;
 
 			Iterator<NMFMatrix> iter = values.iterator();
 			NMFMatrix val;
 
-			if(iter.hasNext())
-			{
+			if (iter.hasNext()) {
 				val = iter.next();
 				result = new NMFMatrix(val.getRowNumber(), val.getColumnNumber(), val.getValues().clone());
 				//System.out.println("REDUCE: ho ricevuto: "+result.toString());
+			} else {
+				throw new IOException("It shouldn't be never verified");
 			}
-			else throw new IOException("It shouldn't be never verified");
 
 
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				val = iter.next();
 				//System.out.println("REDUCE: ho ricevuto: "+val.toString());
-				if (!result.inPlaceSum(val)){
-				    System.err.println("ERRORE nella somma di matrici");
-				    throw new IOException("ERRORE nella somma di matrici");
+				if (!result.inPlaceSum(val)) {
+					System.err.println("ERRORE nella somma di matrici");
+					throw new IOException("ERRORE nella somma di matrici");
 				}
 			}
 			//System.out.println(result.toString());
@@ -83,14 +78,8 @@ public class HPhase3 {
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 3)
-		{
+	public static void main(String[] args) throws Exception {
+		if (args.length != 3) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: W files directories");
 			System.err.println("Second Parameter: Output directory");
@@ -107,9 +96,7 @@ public class HPhase3 {
 
 		job.setCombinerClass(MyReducer.class);
 
-		// Testing Job Options
-		
-                job.setNumReduceTasks(1);
+		job.setNumReduceTasks(1);
 
 		job.setMapOutputKeyClass(NullWritable.class);
 		job.setMapOutputValueClass(NMFMatrix.class);

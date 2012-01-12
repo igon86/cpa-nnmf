@@ -19,110 +19,96 @@ import util.IntAndIdWritable;
 import util.NMFVector;
 import util.SparseVectorElement;
 
-
-/**
- *
- * @author virgilid
- */
 public class HPhase1 {
 
 	private static boolean W = false;
-        private static IntAndIdWritable out = new IntAndIdWritable();
+	private static IntAndIdWritable out = new IntAndIdWritable();
 	//private static int currentRow;
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, GenericElement> {
 
 		@Override
-		protected void setup(Context context) throws IOException
-		{
+		protected void setup(Context context) throws IOException {
 
-		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
 
 			/*  the number present in the file name is the number of the first stored row vector
-                            Through a static variable we take into account the right row number knowing that the
-                            row vector are read sequentially in the file split
-			*/
+			Through a static variable we take into account the right row number knowing that the
+			row vector are read sequentially in the file split
+			 */
 
-			if (folderName.startsWith("W")) /* A row vector must be emitted */
-			{
+			if (folderName.startsWith("W")) /* A row vector must be emitted */ {
 
 				W = true;
-                        }
-			else if( ! folderName.startsWith("A")) throw new IOException("File name not correct");
+			} else if (!folderName.startsWith("A")) {
+				throw new IOException("File name not correct");
+			}
 		}
 
 		@Override
-		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
-		{
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException {
 
-			if (W)
-			{
-                                out.set(key.get(), 'W');
-				context.write(out, value );
-			}
-			else  /* The sparse element must be emitted */
-			{
-                                out.set(key.get(), 'a');
+			if (W) {
+				out.set(key.get(), 'W');
 				context.write(out, value);
-                                }
+			} else /* The sparse element must be emitted */ {
+				out.set(key.get(), 'a');
+				context.write(out, value);
 			}
-                //lower case is usefull for the ordering of the key
-
+		}
+		//lower case is usefull for the ordering of the key
 	}
 
 	public static class MyReducer extends Reducer<IntAndIdWritable, GenericElement, IntWritable, NMFVector> {
-		protected void setup(Context context){
-                        NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
-		}
+
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
-		{
-                        //System.out.println("REDUCE KEY:" +key);
-			
+		protected void setup(Context context) {
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		}
+
+		@Override
+		public void reduce(IntAndIdWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException {
+			//System.out.println("REDUCE KEY:" +key);
+
 			NMFVector temp = null;
-                        IntWritable coordinate = new IntWritable();
+			IntWritable coordinate = new IntWritable();
 
 			SparseVectorElement val = null;
 
-                        double[] doubleTmp = null, vector = null;
+			double[] doubleTmp = null, vector = null;
 
-                        double value;
-                        int coord;
+			double value;
+			int coord;
 
 			Iterator<GenericElement> iter = values.iterator();
 
-			if(iter.hasNext())
-			{
-                                GenericElement g = iter.next();
-                                try{
-                                    temp = (NMFVector) g.get();
-                                }
-                                catch (ClassCastException e){
-                                    val = (SparseVectorElement) g.get();
-                                    System.err.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
-                                }
-                                //too lazy to implement clone
+			if (iter.hasNext()) {
+				GenericElement g = iter.next();
+				try {
+					temp = (NMFVector) g.get();
+				} catch (ClassCastException e) {
+					val = (SparseVectorElement) g.get();
+					System.err.println("Problemi nel SORT della FASE 1 per la key " + key.toString() + "VALUE: " + val.toString() + "\n" + e.toString());
+				}
 
 				vector = temp.getValues().clone();
-                                doubleTmp = new double[temp.getNumberOfElement()];
+				doubleTmp = new double[temp.getNumberOfElement()];
 
 			}
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				val = (SparseVectorElement) iter.next().get();
-                                value = val.getValue();
-                                coord = val.getCoordinate();
-				if (value != 0.0)
-				{
-                                    	for (int i = 0; i < temp.getNumberOfElement(); i++) {
-                                             doubleTmp[i] = vector[i] * value;
-                                        }
-                                        temp.setArray(doubleTmp);
-                                        coordinate.set(coord);
+				value = val.getValue();
+				coord = val.getCoordinate();
+				if (value != 0.0) {
+					for (int i = 0; i < temp.getNumberOfElement(); i++) {
+						doubleTmp[i] = vector[i] * value;
+					}
+					temp.setArray(doubleTmp);
+					coordinate.set(coord);
 					context.write(coordinate, temp);
 				}
 			}
@@ -133,15 +119,13 @@ public class HPhase1 {
 	 * @param args
 	 *            the command line arguments
 	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 5)
-		{
+	public static void main(String[] args) throws Exception {
+		if (args.length != 5) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
 			System.err.println("Third Parameter: Output directory");
 			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
-                        System.err.println("Fifth Parameter: reduce number");
+			System.err.println("Fifth Parameter: reduce number");
 			System.exit(-1);
 		}
 
@@ -158,14 +142,11 @@ public class HPhase1 {
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(NMFVector.class);
 
-		//job.setPartitionerClass(FirstPartitioner.class);
 		job.setGroupingComparatorClass(IntWritable.Comparator.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-		// Testing Job Options
 		job.setNumReduceTasks(new Integer(args[4]));
-		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		TextInputFormat.addInputPath(job, new Path(args[1]));

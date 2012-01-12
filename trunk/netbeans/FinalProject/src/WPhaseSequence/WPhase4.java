@@ -1,4 +1,3 @@
-
 package WPhaseSequence;
 
 import java.io.IOException;
@@ -21,87 +20,86 @@ import util.*;
 
 public class WPhase4 {
 
-    /* The output values must be text in order to distinguish the different data types */
-    public static class MyMapper extends Mapper<IntWritable, GenericElement, IntWritable, GenericElement> {
+	/* The output values must be text in order to distinguish the different data types */
+	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntWritable, GenericElement> {
 
-        private static NMFMatrix WW = new NMFMatrix();
+		private static NMFMatrix WW = new NMFMatrix();
 
 		@Override
-        protected void setup(Context context) throws IOException
-		{
-	    			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		protected void setup(Context context) throws IOException {
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
-            // MI PRENDO LA MATRICE DAL FILE ESTERNO
-            Configuration conf = context.getConfiguration();
-            String otherFiles = conf.get("otherFiles", null);
-            if (otherFiles != null)
-	    {
-                FileSystem fs = FileSystem.get(conf);
+			// MI PRENDO LA MATRICE DAL FILE ESTERNO
+			Configuration conf = context.getConfiguration();
+			String otherFiles = conf.get("otherFiles", null);
+			if (otherFiles != null) {
+				FileSystem fs = FileSystem.get(conf);
 
 				Path inFile = new Path(otherFiles);
 
 				FileStatus fileStatus = fs.getFileStatus(inFile);
-				if(!fileStatus.isDir())
+				if (!fileStatus.isDir()) {
 					throw new IOException("The file isn't a directory");
+				}
 
 				FileStatus[] list = fs.listStatus(inFile);
 				Path cMatrix = null;
-				for(int i=0;i<list.length;i++)
-				{
+				for (int i = 0; i < list.length; i++) {
 					cMatrix = list[i].getPath();
-					if(fs.getFileStatus(cMatrix).isDir())
+					if (fs.getFileStatus(cMatrix).isDir()) {
 						cMatrix = null;
-					else break;
+					} else {
+						break;
+					}
 				}
 
-				if(cMatrix == null)
+				if (cMatrix == null) {
 					throw new IOException("The directory doesn't contain the data file");
+				}
 
-                //creo il path dei file esterni
-        //        Path inFile = new Path(otherFiles);
-		SequenceFile.Reader sfr = new SequenceFile.Reader(fs, cMatrix, conf);
-		sfr.next(NullWritable.get(), WW);
-		/*
-                FSDataInputStream in = fs.open(inFile);
-                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				//creo il path dei file esterni
+				//        Path inFile = new Path(otherFiles);
+				SequenceFile.Reader sfr = new SequenceFile.Reader(fs, cMatrix, conf);
+				sfr.next(NullWritable.get(), WW);
+				/*
+				FSDataInputStream in = fs.open(inFile);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-		String input;
-                StringBuilder sb = new StringBuilder();
-                input = br.read
-		while (!input.isEmpty())
+				String input;
+				StringBuilder sb = new StringBuilder();
+				input = br.read
+				while (!input.isEmpty())
 				{
-                    sb.append(input);
-                    input = br.readLine();
-                }
-		//System.out.println("DA FILE HO LETTO: "+sb.toString());
-		
-                // stampa di debug del file esterno, seccata perche non so come stampa uno string builder
+				sb.append(input);
+				input = br.readLine();
+				}
+				//System.out.println("DA FILE HO LETTO: "+sb.toString());
 
-                WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
-		 **/
-		//System.out.println("QUESTA E LA MATRICE WW CHE HO INIZIALIZZATO: "+WW.toString());
-		
-            }
+				// stampa di debug del file esterno, seccata perche non so come stampa uno string builder
 
-        }
+				WW = MatrixMatrix.parseLine(sb.toString()); //WW.parseLine(sb.toString());
+				 **/
+				//System.out.println("QUESTA E LA MATRICE WW CHE HO INIZIALIZZATO: "+WW.toString());
 
-        public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
-		{
+			}
+
+		}
+
+		@Override
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException {
 			NMFVector mv = (NMFVector) value.get();
 			//System.out.println("MI ARRIVA IL VETTORE: "+mv.toString());
-			NMFVector out = NMFMatrix.leftVectorMul(WW,mv);
+			NMFVector out = NMFMatrix.leftVectorMul(WW, mv);
 			//System.out.println("HO FATTO LA MOLTIPLICAZIONE: "+out.toString());
 			GenericElement gw = new GenericElement();
 			gw.set(out);
-			context.write(key,gw);
+			context.write(key, gw);
 
-        }
-    }
+		}
+	}
 
-    public static void main(String[] args) throws Exception 
-	{
-		if(args.length != 4)
-		{
+	public static void main(String[] args) throws Exception {
+		if (args.length != 4) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: H files directories");
 			System.err.println("Second Parameter: HPhase3 output file");
@@ -110,27 +108,24 @@ public class WPhase4 {
 			System.exit(-1);
 		}
 
-        Configuration conf = new Configuration();
-	conf.setInt("elementsNumber", Integer.parseInt(args[3]));
-        conf.set("otherFiles", args[1]);
-        Job job = new Job(conf, "MapRed Step4");
-        job.setJarByClass(WPhase4.class);
-        job.setMapperClass(MyMapper.class);
-	
-        job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(GenericElement.class);
+		Configuration conf = new Configuration();
+		conf.setInt("elementsNumber", Integer.parseInt(args[3]));
+		conf.set("otherFiles", args[1]);
+		Job job = new Job(conf, "MapRed Step4");
+		job.setJarByClass(WPhase4.class);
+		job.setMapperClass(MyMapper.class);
 
-	job.setInputFormatClass(SequenceFileInputFormat.class);
-	job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputValueClass(GenericElement.class);
 
-	job.setNumReduceTasks(0);
+		job.setInputFormatClass(SequenceFileInputFormat.class);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-		// Testing Job Options
+		job.setNumReduceTasks(0);
 
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[2]));
 
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[2]));
-
-        job.waitForCompletion(true);
-    }
+		job.waitForCompletion(true);
+	}
 }

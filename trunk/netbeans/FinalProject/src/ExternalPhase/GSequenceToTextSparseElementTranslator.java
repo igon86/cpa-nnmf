@@ -1,4 +1,3 @@
-
 package ExternalPhase;
 
 import java.io.IOException;
@@ -17,54 +16,42 @@ import util.GenericElement;
 import util.SparseElement;
 import util.SparseVectorElement;
 
+public class GSequenceToTextSparseElementTranslator {
 
-
-public class GSequenceToTextSparseElementTranslator
-{
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, SparseElement, NullWritable> {
 
 		@Override
-		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
-		{
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException {
 
-                        SparseVectorElement sve = (SparseVectorElement) value.get();
-                        //System.out.println("HO LETTO: "+key.toString()+ " " +sve.toString());
-                        SparseElement se = new SparseElement(key.get(), sve.getCoordinate(), sve.getValue());
+			SparseVectorElement sve = (SparseVectorElement) value.get();
+			//System.out.println("HO LETTO: "+key.toString()+ " " +sve.toString());
+			SparseElement se = new SparseElement(key.get(), sve.getCoordinate(), sve.getValue());
 
-                        try{
-                            se.toString();
-                            //System.out.println("STAMPERO: "+se.toString());
-                        }
-                        catch(NullPointerException e)
-                        {
-                            System.err.println("!!!####Errore di null pointer " + key.get() +"\\" + sve.getCoordinate()+"\\"+sve.getValue()+"\n");
-                        }
-                        
-                        context.write(se, NullWritable.get());
+			try {
+				se.toString();
+				//System.out.println("STAMPERO: "+se.toString());
+			} catch (NullPointerException e) {
+				System.err.println("Errore di null pointer: " + key.get() + "\\" + sve.getCoordinate() + "\\" + sve.getValue() + "\n");
+			}
+
+			context.write(se, NullWritable.get());
 
 		}
 	}
 
-        public static class MyReducer extends Reducer<SparseElement, NullWritable, SparseElement, NullWritable> {
+	public static class MyReducer extends Reducer<SparseElement, NullWritable, SparseElement, NullWritable> {
 
 		@Override
-		public void reduce(SparseElement key, Iterable<NullWritable> values, Context context) throws IOException, InterruptedException
-		{
+		public void reduce(SparseElement key, Iterable<NullWritable> values, Context context) throws IOException, InterruptedException {
 
-                  context.write(key, NullWritable.get());
+			context.write(key, NullWritable.get());
 
 		}
 	}
 
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 2)
-		{
+	public static void main(String[] args) throws Exception {
+		if (args.length != 2) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");
 			System.err.println("Second Parameter: Output directory");
@@ -76,16 +63,14 @@ public class GSequenceToTextSparseElementTranslator
 		Job job = new Job(conf, "Translator from GSequence to Text for the Sparse Element");
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
-                job.setReducerClass(MyReducer.class);
-                job.setReducerClass(MyReducer.class);
+		job.setReducerClass(MyReducer.class);
+		job.setReducerClass(MyReducer.class);
 
 		job.setNumReduceTasks(1);
 
-                //job.setMapOutputKeyClass(NullWritable.class);
-                //job.setMapOutputValueClass(SparseElement.class);
 		job.setMapOutputKeyClass(SparseElement.class);
 		job.setMapOutputValueClass(NullWritable.class);
-                job.setOutputKeyClass(SparseElement.class);
+		job.setOutputKeyClass(SparseElement.class);
 		job.setOutputValueClass(NullWritable.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 
@@ -94,7 +79,4 @@ public class GSequenceToTextSparseElementTranslator
 
 		job.waitForCompletion(true);
 	}
-
-
-
 }

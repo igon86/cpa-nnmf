@@ -1,4 +1,3 @@
-
 package ExternalPhase;
 
 import java.io.IOException;
@@ -19,50 +18,43 @@ import util.GenericElement;
 import util.SparseElement;
 import util.SparseVectorElement;
 
-public class TextToGSequenceSparseElementTranslator
-{
+public class TextToGSequenceSparseElementTranslator {
+
 	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, GenericElement> {
 
 		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
-		{
-                    try{
-			SparseElement se = SparseElement.parseLine(value.toString());
-			SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
-			GenericElement gw = new GenericElement();
-			gw.set(sve);
-			context.write(new IntWritable(se.getRow()), gw);
-                    }
-                    catch(Exception e)
-                    {System.out.println("Record non valido. \nSkip del record non valido.");
-                    }
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			try {
+				SparseElement se = SparseElement.parseLine(value.toString());
+				SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
+				GenericElement gw = new GenericElement();
+				gw.set(sve);
+				context.write(new IntWritable(se.getRow()), gw);
+			} catch (Exception e) {
+				System.out.println("Record non valido. \nSkip del record non valido.");
+			}
 		}
 	}
 
-        public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
+	public static class MyReducer extends Reducer<IntWritable, GenericElement, IntWritable, GenericElement> {
 
 		@Override
-		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException
-		{
-                    Iterator<GenericElement> iter = values.iterator();
+		public void reduce(IntWritable key, Iterable<GenericElement> values, Context context) throws IOException, InterruptedException {
+			Iterator<GenericElement> iter = values.iterator();
 
-                    while( iter.hasNext())
-                        context.write(key, iter.next());
+			while (iter.hasNext()) {
+				context.write(key, iter.next());
+			}
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 3)
-		{
+
+	public static void main(String[] args) throws Exception {
+		if (args.length != 3) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");
 			System.err.println("Second Parameter: Output directory");
-                	System.err.println("Third Parameter: reduce number");
+			System.err.println("Third Parameter: reduce number");
 
 			System.exit(-1);
 		}
@@ -72,11 +64,11 @@ public class TextToGSequenceSparseElementTranslator
 		Job job = new Job(conf, "Translator from Text to Sequence for the Sparse Element");
 		job.setJarByClass(TextToGSequenceSparseElementTranslator.class);
 		job.setMapperClass(MyMapper.class);
-                job.setReducerClass(MyReducer.class);
+		job.setReducerClass(MyReducer.class);
 
 		job.setNumReduceTasks(new Integer(args[2]));
 
-                job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputKeyClass(IntWritable.class);
 		job.setMapOutputValueClass(GenericElement.class);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(GenericElement.class);
