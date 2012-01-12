@@ -17,6 +17,6 @@ K_DIM=2
 
 ${NMF_HOME}/Script/LoadData.sh ${DEFAULT_LOCAL_A} ${DEFAULT_REMOTE_A} ${DEFAULT_LOCAL_H} ${DEFAULT_REMOTE_H} ${DEFAULT_LOCAL_W} ${DEFAULT_REMOTE_W}
 
-${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceMatrixWHTranslator ${DEFAULT_REMOTE_W} ${DEFAULT_REMOTE_INITIAL_W} ${K_DIM}
-${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceMatrixWHTranslator ${DEFAULT_REMOTE_H} ${DEFAULT_REMOTE_INITIAL_H} ${K_DIM}
-${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceSparseElementTranslator ${DEFAULT_REMOTE_A} ${DEFAULT_REMOTE_INITIAL_A}
+${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceMatrixWHTranslator ${DEFAULT_REMOTE_W} ${DEFAULT_REMOTE_INITIAL_W} ${K_DIM} 16
+${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceMatrixWHTranslator ${DEFAULT_REMOTE_H} ${DEFAULT_REMOTE_INITIAL_H} ${K_DIM} 16
+${HADOOP_HOME}/bin/hadoop jar ${DEFAULT_JAR} ExternalPhase.TextToGSequenceSparseElementTranslator ${DEFAULT_REMOTE_A} ${DEFAULT_REMOTE_INITIAL_A} 46

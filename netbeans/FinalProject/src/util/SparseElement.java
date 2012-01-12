@@ -42,7 +42,10 @@ public class SparseElement implements WritableComparable<SparseElement>{
         static private void parseLine(String s, SparseElement se)
         {
                 String[] splitted = s.split("#");
-        	try
+
+   // try{
+
+                try
         	{
         		se.rowCoordinate = new Integer(splitted[0]);
         		
@@ -50,7 +53,8 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.err.println("Error parseLine ROW of SparseElement:" + s+"\nROW: "+splitted[0]);
+        		//System.err.println("Error parseLine ROW of SparseElement:" + s+"\nROW: "+splitted[0]);
+                        System.err.println("########Errore formato sbagliato!!!!: s="+s);
         		se.rowCoordinate = 0;
         	}
                 
@@ -60,8 +64,9 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.err.println("Error parseLine COLUMN of SparseElement:" + s+"\nCOLUMN: "+splitted[1]);
+        		//System.err.println("Error parseLine COLUMN of SparseElement:" + s+"\nCOLUMN: "+splitted[1]);
 
+                        System.err.println("########Errore formato sbagliato!!!!: s="+s);
         		se.columnCoordinate = 0;
 
         	}
@@ -73,7 +78,8 @@ public class SparseElement implements WritableComparable<SparseElement>{
         	}
         	catch(NumberFormatException e)
         	{
-        		System.err.println("Error parseLine VALUE of SparseElement:" + s+"\nVALUE: "+splitted[2]);
+        		//System.err.println("Error parseLine VALUE of SparseElement:" + s+"\nVALUE: "+splitted[2]);
+                        System.err.println("########Errore formato sbagliato!!!!: s="+s);
                         System.err.print("VALUE: ");
                         for (int i=0; i< splitted[2].length();i++){
                             System.err.print(splitted[2].charAt(i)+"("+(int)splitted[2].charAt(i)+")");
@@ -81,7 +87,15 @@ public class SparseElement implements WritableComparable<SparseElement>{
                         System.err.println("FINITO");
         		se.value = 0.0;
         	}
-        }
+    }
+//    catch(Exception e)
+//    {
+//                                System.err.println("########Errore formato sbagliato!!!!: s=\""+s+"\"");
+//                                for(int i=0; i<s.length(); i++)
+//                                    System.out.print(""+ s.charAt(i) +"##");
+
+//    }
+//}
 
         public int getRow()
         {

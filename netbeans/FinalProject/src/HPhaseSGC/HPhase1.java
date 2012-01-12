@@ -135,12 +135,13 @@ public class HPhase1 {
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 4)
+		if(args.length != 5)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First/Second Parameter: A/W files directories");
 			System.err.println("Third Parameter: Output directory");
 			System.err.println("Fourth Parameter: The factorizing parameter of the NNMF (K)");
+                        System.err.println("Fifth Parameter: reduce number");
 			System.exit(-1);
 		}
 
@@ -163,7 +164,7 @@ public class HPhase1 {
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		// Testing Job Options
-		//job.setNumReduceTasks(2);
+		job.setNumReduceTasks(new Integer(args[4]));
 		//job.setOutputValueGroupingComparator(Class);
 
 		TextInputFormat.addInputPath(job, new Path(args[0]));

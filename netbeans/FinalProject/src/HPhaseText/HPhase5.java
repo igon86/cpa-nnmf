@@ -93,12 +93,13 @@ public class HPhase5 {
      *            the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 5) {
+        if (args.length != 6) {
             System.err.println("The number of the input parameter are not corrected");
             System.err.println("First/Second/Third Parameter: "
                     + "H/X/Y files directories");
             System.err.println("Fourth Parameter: Output directory");
             System.err.println("Fifth Parameter: K");
+            System.err.println("Sixth Parameter: reduce number");
 
             System.exit(-1);
         }
@@ -112,7 +113,7 @@ public class HPhase5 {
         job.setMapperClass(MyMapper.class);
         job.setReducerClass(MyReducer.class);
 
-        //job.setNumReduceTasks(2);
+        job.setNumReduceTasks(new Integer(args[5]));
 
         job.setMapOutputKeyClass(IntAndIdWritable.class);
         job.setMapOutputValueClass(NMFVector.class);
