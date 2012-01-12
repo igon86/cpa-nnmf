@@ -18,9 +18,9 @@
 
 5) Need to factorize all the phase to procede towards WPhase [DONE]
 
-6) Test the project in distributed manner
+6) Test the project in distributed manner [DONE]
 
-* Distributed Cache instead of reading from distributed File System
+* Distributed Cache instead of reading from distributed File System [NONE]
 
 Other Things:
 
@@ -28,8 +28,8 @@ Other Things:
 	===> The problems arise when we are computing the Phase 5
 	===> Unwanted Feature!!!
 	(WE MUST TAKE CARE TO SEE WHAT HAPPENS IN THE FOLLOWING HPHASES)
+	[SOLVED]
 
 Dubt:
 
-* FileSplit vs InputSplit
 

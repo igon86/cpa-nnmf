@@ -1,4 +1,3 @@
-
 package HPhaseSequence;
 
 import java.util.Iterator;
@@ -18,21 +17,17 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import util.*;
 
-/**
- *
- * @author virgilid
- */
 public class HPhase5 {
-    
+
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<IntWritable, GenericElement, IntAndIdWritable, NMFVector> {
 
 		char matrixId;
+
 		@Override
-		protected void setup(Context context) throws IOException
-		{
-		    	NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+		protected void setup(Context context) throws IOException {
+			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 
 			String folderName = ((FileSplit) context.getInputSplit()).getPath().getParent().getName();
 
@@ -40,24 +35,23 @@ public class HPhase5 {
 		}
 
 		@Override
-		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException
-		{
-			    context.write(new IntAndIdWritable(key.get(),matrixId), (NMFVector) value.get());	
+		public void map(IntWritable key, GenericElement value, Context context) throws IOException, InterruptedException {
+			context.write(new IntAndIdWritable(key.get(), matrixId), (NMFVector) value.get());
 		}
-
 	}
 
 	/**
 	 * null writable is used in order to serialize a MatrixMatrix only
 	 */
 	public static class MyReducer extends Reducer<IntAndIdWritable, NMFVector, IntWritable, GenericElement> {
-	@Override
-		protected void setup(Context context){
+
+		@Override
+		protected void setup(Context context) {
 			NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
+
 		@Override
-		public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException
-		{
+		public void reduce(IntAndIdWritable key, Iterable<NMFVector> values, Context context) throws IOException, InterruptedException {
 			// reduce should receive H,X,Y vector exactly in this order AND nothing else
 			NMFVector[] vectors = new NMFVector[3];
 			NMFVector val = null;
@@ -65,40 +59,31 @@ public class HPhase5 {
 			Iterator<NMFVector> iter = values.iterator();
 
 			int i = 0;
-			while (iter.hasNext() && i <3)
-			{
+			while (iter.hasNext() && i < 3) {
 				val = iter.next();
 				vectors[i++] = new NMFVector(val.getNumberOfElement(), val.getValues().clone());
 
 			}
-			if (iter.hasNext() || i<3){ // this must throw an Exception
-			    System.err.println("SONO il reducer della key: " +key.toString() + " e ho ricevuto " +i +" valori");
+			if (iter.hasNext() || i < 3) { // this must throw an Exception
+				System.err.println("SONO il reducer della key: " + key.toString() + " e ho ricevuto " + i + " valori");
+			} else {
+				vectors[0].inPlacePointMul(vectors[1]);
+				vectors[0].inPlacePointDiv(vectors[2]);
+				GenericElement gw = new GenericElement();
+				gw.set(vectors[0]);
+				context.write(new IntWritable(key.get()), gw);
 			}
-			else{
-			    vectors[0].inPlacePointMul(vectors[1]);
-			    vectors[0].inPlacePointDiv(vectors[2]);
-			    GenericElement gw = new GenericElement();
-			    gw.set(vectors[0]);
-			    context.write(new IntWritable(key.get()), gw);
-			}
-			
+
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 6)
-		{
+	public static void main(String[] args) throws Exception {
+		if (args.length != 6) {
 			System.err.println("The number of the input parameter are not corrected");
-			System.err.println("First/Second/Third Parameter: "
-					+ "H/X/Y files directories");
+			System.err.println("First/Second/Third Parameter: " + "H/X/Y files directories");
 			System.err.println("Fourth Parameter: Output directory");
 			System.err.println("Fiveth Parameter: The factorizing parameter of the NNMF (K)");
-                        System.err.println("Sixth Parameter: reduce number");
+			System.err.println("Sixth Parameter: reduce number");
 
 			System.exit(-1);
 		}
@@ -121,7 +106,6 @@ public class HPhase5 {
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-		// Testing Job Options
 		job.setNumReduceTasks(new Integer(args[5]));
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));

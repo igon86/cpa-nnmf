@@ -2,9 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package ExternalPhase;
-
 
 import java.io.IOException;
 
@@ -20,30 +18,22 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import util.NMFVector;
 
-
-public class TextToSequenceMatrixWHTranslator
-{
+public class TextToSequenceMatrixWHTranslator {
 
 	/* The output values must be text in order to distinguish the different data types */
 	public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, NMFVector> {
 
 		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
-		{
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String[] values = value.toString().split("\t");
 			Integer index = new Integer(values[0]);
 			context.write(new IntWritable(index), NMFVector.parseLine(values[1]));
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		if(args.length != 2)
-		{
+
+	public static void main(String[] args) throws Exception {
+		if (args.length != 2) {
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: A/W files directories");
 			System.err.println("Second Parameter: Output directory");
