@@ -26,11 +26,16 @@ public class TextToGSequenceSparseElementTranslator
 		@Override
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
 		{
+                    try{
 			SparseElement se = SparseElement.parseLine(value.toString());
 			SparseVectorElement sve = new SparseVectorElement(se.getColumn(), se.getValue());
 			GenericElement gw = new GenericElement();
 			gw.set(sve);
 			context.write(new IntWritable(se.getRow()), gw);
+                    }
+                    catch(Exception e)
+                    {System.out.println("Record non valido. \nSkip del record non valido.");
+                    }
 		}
 	}
 

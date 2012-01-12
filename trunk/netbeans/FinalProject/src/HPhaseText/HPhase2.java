@@ -80,12 +80,14 @@ public class HPhase2{
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
 			System.err.println("The number of the input parameter are not corrected");
 			System.err.println("First Parameter: HPhase1 output files directories");
 			System.err.println("Second Parameter: Output directory");
                         System.err.println("Third Parameter: K ");
+                        System.err.println("Fourth Parameter: reduce number");
+
 			System.exit(-1);
 		}
 
@@ -104,7 +106,7 @@ public class HPhase2{
 		job.setOutputValueClass(NMFVector.class);
 
 		// Testing Job Options
-		job.setNumReduceTasks(2);
+		job.setNumReduceTasks(new Integer(args[3]));
 		
 		TextInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));

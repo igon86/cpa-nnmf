@@ -42,9 +42,9 @@ W_PRIME=W$((iter_numb++))
 
 ###### COMPUTING X ######
 echo %%%%PHASE 1%%%%%%
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase1 $A_DATA $H_DATA $X_PARTIAL $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase1 $A_DATA $H_DATA $X_PARTIAL $K_DIM 27
 echo %%%%PHASE 2%%%%%%
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase2 $X_PARTIAL $X_FINAL $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase2 $X_PARTIAL $X_FINAL $K_DIM 27
 
 ###### COMPUTING Y ######
 echo %%%%PHASE 3%%%%%%
@@ -54,4 +54,6 @@ ${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} WPhaseSequence.WPhase4 $W_DATA $C_DATA
 
 ###### COMPUTING THE UPDATED MATRIX W ######
 echo %%%%PHASE 5%%%%%%
-${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase5 $W_DATA $X_FINAL $Y_FINAL $W_PRIME $K_DIM
+${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} HPhaseSequence.HPhase5 $W_DATA $X_FINAL $Y_FINAL $W_PRIME $K_DIM 27
+
+${HADOOP_HOME}/bin/hadoop fs -rmr X\* Y\* C\*

@@ -98,8 +98,18 @@ public class WPhase1 {
 
 			if(iter.hasNext())
 			{
-				temp = (NMFVector) iter.next().get();
-				mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
+                            GenericElement g = iter.next();
+
+                             try{
+				temp = (NMFVector) g.get();
+                             }
+
+                             catch (ClassCastException e){
+                                    val = (SparseVectorElement) g.get();
+                                    System.err.println("Problemi nel SORT della FASE 1 per la key "+key.toString()+"VALUE: "+val.toString()+"\n"+e.toString());
+                              }
+
+                             mv = new NMFVector(temp.getNumberOfElement(), temp.getValues().clone());
 				
 
 			}
