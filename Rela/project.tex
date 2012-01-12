@@ -10,6 +10,7 @@
 \usepackage{fancyhdr}
 \usepackage{color}
 \usepackage{url}
+\usepackage{placeins}
 %o questo?
 \usepackage{natbib}
 
@@ -131,27 +132,40 @@ More precisely, current research on Non Negative Matrix Factorization regards:
     \item Online -- How update factorization when new data comes without the need of a recomputing from scratch.
 \end{itemize}
 
-As obvious, we focus on the second problem.
+We will focus on the second problem.
 
 \section{Map Reduce Algorithm }
 \label{mapreduce}
 
-For our implementation we assumed that the distribution of the values of the input matrix was gaussian\cite{liu2010}.
-If this is the case the computation has the form of Listing \ref{code:nmf}.
-Now we have to discuss how this rather simple algorithm can be implemented in Map Reduce \cite{liu2010}.
-In order to do so we will consider separately the update of the $\mathcal{W}$ and the $\mathcal{H}$ matrix.
+For our implementation we assumed that the distribution of the values of the input matrix was gaussian.
+If this is the case, the computation has the form of Listing \ref{code:nmf}.
+Now we have to discuss how this rather simple algorithm can be implemented in Map Reduce\cite{liu2010}.
+In order to do so, we will consider separately the update of the $\mathcal{H}$ matrix (Figure \ref{fig:mapReduceScheme}) and the update of the $\mathcal{W}$ matrix.
+However, the two operation are very similar.
+
+\begin{center}
+	\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{./figures/mapReduceScheme}
+	\caption{Update of the H matrix: $H = H.*\frac{W^T*A}{W^T*W*H}$ }
+	\label{fig:mapReduceScheme}
+	\end{figure}
+\end{center}
 
  \subsection{Update of the H Matrix}
-    The resulting matrix can be computed obtaining 2 auxiliary
-    matrixes that help in the computation of the updated matrix. So,
-    the algorithm can be divided in three main phases, where are
-    computed:
+ \label{sec:hupdate}
+    From Figure \ref{fig:mapReduceScheme} we can see that the algorithm can be divided in three main phases:
+    
   \subsubsection{$ X = W^T * A $}
-        This schema can be used to multiply any two giant matrices when one
-        is sparse ad the other is narrow. Let $x_j$ denote the $j^{th}$ column of X, then 
+        This operation is equivalent to multiply a sparse matrix with a vector. 
+        Consider that $k$ is usually less than 100 so the matrix W is equivalent to a vector. 
+		Let $x_j$ denote the $j^{th}$ column of X, and $w_i$ denote the $i^{th}$ row of W.
+		We use $\mathbb{O}$ to indicate non zero elements of A, i.e. $\mathbb{O} = \{ (i,j) \;|\; A_{i,j}  \neq 0 \}$.
+		Similarly $\mathbb{O}_i = \{j \;|\; A_{i,j} \neq 0 \}$ and $\mathbb{O}^j = \{i \;|\; A_{i,j} \neq 0 \}$.
+		We have that
         $$ x_j = \sum_{i=1}^{m} A_{i,j} w_{i}^{T} = \sum_{i \in \mathbb{O}_i} A_{i,j} w_{i}^{T} $$ 
-        This operation can be implemented as two set of map/reduce
-        operations.
+        This operation can be implemented with two steps of map reduce.
+        
         \begin{itemize}
           \item MAP-I: Map $ \langle i, j, A_{i,j} \rangle $ and $\langle i, w_i \rangle$ on i
             such that tuples with the same i are shuffled together in
@@ -217,8 +231,7 @@ In order to do so we will consider separately the update of the $\mathcal{W}$ an
 
 	
 	\subsection{Computation of the updated W Matrix}
-    This phase is very similar to the one described in the above
-    phase.
+    This phase is very similar to the update of the H matrix.
 
     \begin{itemize}
       \item \subsubsection{$ X = A * H^T $}
@@ -282,73 +295,221 @@ In order to do so we will consider separately the update of the $\mathcal{W}$ an
 
     \end{itemize}
 
-
-
-
-\section{Assumption}
-
-In our project, as its done in the paper, we assume that the matrix that we need to factorized is a sparse matrix. So an appropriate internal representation can be used specifing element by element in the A matrix.
-
 \section{Implementation}
-\label{implementation}
+\label{sec:implementation}
 
-In this section we analysed the main implementation choices, specifying the Hadoop's key features used.
+In this section we will analyze the implementation's choices and specify the Hadoop's key features used. 
+We refined our implementation many times as we became more confident with the framework and its mechanism; every modification leading to better performance and more maintainable code.
+We are going to first introduce the motivations that guided our design choices and some of the \textit{breakthrough} on the framework that made us restart from scratch.
+Then, we will comment in detail on the implementation of the various phases.
 
+\paragraph{Types}
+Our first implementation used mainly Text as key or value type.
+This is convenient since the programmer has complete control on how information is passed from one stage to another.
+It is also very easy to build an application storing all information as text.
+However this solution has some problems:
+\begin{itemize}
+\item Code is not easily \textbf{maintainable} and \textbf{modifiable} as every phase basically performs string manipulation. Making a modification on the pattern of storage of information requires modification in all the codebase.
+\item We are not working with Text, storing matrices as text pose problems of space occupancy, precision and efficiency. 
+Storing floating point values as text is inefficient in terms of space.
+Moreover, in order to perform arithmetic operations it is necessary to parse numeric values, perform the operation and convert them back to string.
+This leads to poor performance and excessive garbage collection.
+\end{itemize}
+Therefore, we decided to create our types of data that can be transmitted as key or value type.
 
-\subsection{Types}
-In this project, we decide to create our types of data that can be transmitted as key or value type. In order to achieve this goal, each classes representing an object in our application domain extend the class \CLASS{WritableComparable} of the Hadoop framework and override the method:
+In order to achieve this goal, each classes representing an object in our application implements the interface \CLASS{WritableComparable} of the Hadoop framework and overrides the methods:
 \begin{itemize}
   \item \METHOD{ReadFields()} / \METHOD{WriteFields()} - for reading/writing the data in a serializated format.
   \item \METHOD{compareTo()} - for comparing two element in the case the type is used as key.
 \end{itemize}
 
-Also dual methods for reading/writing in human-readable format is defined in the method \METHOD{parseLine()} and \METHOD{toString()}. The mathematical operations that can be done on the different types are implemented directly in the class as instance method (e.g. multiplication matrix per vector, vector per vector and so on). 
+Also dual methods for reading/writing in human-readable format is defined in the method \METHOD{parseLine()} and \METHOD{toString()}.
+The mathematical operations that can be done on the different types are implemented directly in the class as instance method (e.g. multiplication matrix per vector, vector per vector and so on).
 
-The files representing the data in the computation are in a serialized form, both in input and in output. It impose that the Map/Reduce phases need to read/write directly the data from a codified datafile. This task is accomplished by setting the input/output SequenceFile through the \CLASS{Job} class. The choice of adopting an internal data representation has been done in order to reduce the dimension of the files stored at the end of each phase of the computation and so it improve the performance of the read/write on the Hadoop's Distributed File System. The user, obviously, is able to write the input data only in a readable format so different tool (written as of Map/Reduce programs) for converting the data from readable to codified and vice-versa are provided.
+We implemented the following classes:
+\begin{enumerate}
+  \item NMFVector: Vector datatype with associated numerical operations. 
+  \item NMFMatrix: Matrix datatype with associated numerical operations.
+  \item SparseElement: Element of a Sparse Matrix.
+  \item SparseVectorElement: Element with a single coordinate.
+  \item IndAndIdWritable: A particular datatype used in the first phase (see Section \ref{sec:phase1}).
+\end{enumerate}
 
-In the computation of the auxiliary matrix X (Phase1) happens that, as output of the maper must be emitted a type that can be either a \CLASS{SparseVectorElement} or \CLASS{NMFVector}. So, what we need is a mechanism to abstract from the real type of the element emitted. The first attempted trial was the use the polymorphism to bypass the problems. However, unluckily, the Hadoop framework doesn't support the polymorphism in the emitted type because it does only a run-time checking on the real type and not, as usual, on the apparent type. Anyway, the framework provides a solution that can be used in these cases: the generic types. With the generic type, a new class that extends \CLASS{GenericWritable} must be implemented. The main goal of this class is return, when is called the method \METHOD{getTypes()}, an array of all the supported classes. Then, it can be scanned sequentially to look for the rigth type and read the data using the introspection mechanism. This control must be done at every read of an element because every type emitted can have different type.
+These classes can be used in intermediate key and value pairs, however we would like that each phase used our datatypes as input and output elements.
+This is possible using \textbf{Sequence Files.}
+
+\paragraph{Sequence Files}
+
+Hadoop also offers the possibility to use as Input and Output of a map reduce job serialized data (binary data). 
+This is done via the SequenceFile record reader and writer.
+This mechanism also produces a more readable and efficient code since key value pairs are stored as objects, instead of Text, without need for conversion. 
+Different tools (written as of Map/Reduce programs) for converting the data from text to binary and vice-versa were also implemented.
+
+\paragraph{Data Flow}
+
+We wanted to keep every phase (Figure \ref{fig:mapReduceScheme}) separated in order to ease debugging and performance tests.
+However, update of the W and H matrix are complex operation that requires 5 steps each.
+Therefore we developed a set of bash scripts to control input and output folder and maintain a consistent state on the distributed file system.
+This is very important since folder names should be chosen wisely in order to ensure correctness of the application (see Section \ref{sec:phase1} and \ref{sec:phase5})
+
+\paragraph{Optimization of communications and object creation}
+
+It is very important to try to reduce the amount of data transferred in order to ensure maximum performance.
+Therefore, we used combiners in every phase that could benefit from them.
+We also tried to reduce the amount of object created in each phase in order to reduce garbage collection.
+Moreover, we implemented phase 1 with particular attention in order to eliminate the need to store intermediate values (Section \ref{sec:phase1}).
+
+Specific details about the optimizations performed on each phase can be found in the following sections.
+
+\subsection{Phase 1}
+\label{sec:phase1}
+
+This phase is both the most complex to implement and the most greedy in terms of resources (Graph \ref{}).
+Therefore we tried to implement it in the most efficient way.
+We had to change our design multiple times so we are going to thoroughly explain the optimizations that we used.
+
+We already explained in Section \ref{sec:hupdate} that the first and second phase basically corresponds to a matrix vector multiplication since the W matrix is narrow.
+
+\begin{center}
+	\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{./figures/Map1}
+	\caption{First Phase of Map Reduce}
+	\label{fig:Map1}
+	\end{figure}
+\end{center}
+
+It does not seem like a complex operation to implement in Hadoop but it require some attention in order to be implemented correctly.
+The first step in particular is somewhat tricky. 
+Let's analyze it in detail.
+\begin{enumerate}
+\item The mapper should distinguish between the matrix element and the vector element. 
+It also has to emit data structured differently in the two cases.
+\item Similarly, the reducer has to distinguish between an element from the vector or the matrix.
+\item Consider the output of the reducer $<i, A_{i,n}*v_{n}> \; \forall \; A_{i,n} \;|\; A_{i,n} \neq 0$. We would like to receive $v_n$ before the elements of the matrix since $v_n$ is used in every multiplication performed by the reducer.
+\item We are using two steps of map reduce in sequence and the information is not implicitly text (they are numbers), we would like to minimize the size of the data transferred.
+\item We would like to have a well organized/maintainable code; this is a general concern.
+\end{enumerate}
+
+\FloatBarrier
+The first two concerns are functional, it is necessary to distinguish elements from A and v, otherwise the computation will be incorrect.
+So let's consider a preliminary straightforward implementation.
+
+%\javalisting{Map1Text}{Code of the first Map Reduce phase. We assume that the vector is saved on multiple files stored in a folder with the filename starting with V. Similarly for the matrix A. }
+
+We solved the problem of distinguishing between A and v in the mapper using the filename of the chunk. 
+Similarly, we solved the problem in the reducer by adding an annotation in the intermediate values. 
+Mapper and Reducers can distinguish between data from the vector or the matrix.
+We are also using text to save intermediate values so we can arrange the structure of the data as we want.
+Now let's consider non functional constrains.
+This solution is inefficient since the reducer has to store every element received from the matrix. 
+The order of the values received is random.
+A possible optimization is to buffer elements from A \textbf{until} the element from the vector is received and then, flush the buffer and output final elements in a streaming fashion.
+In the worst case, this solution is equivalent to the previous solution (Listing \ref{code:Map1Text}).
+We can overcome this problem using the shuffle \& sort phase and ensure that the vector element will be the first on the list of values for every reduce operation.
+This problem of having values (not only keys) sorted can be found in literature as \textbf{Secondary Sort}.
+
+\subsubsection{Secondary Sort}
+
+What we want to accomplish with secondary sort is to have runs of values from a key ordered depending on our needs.
+There are many possible ways to implement a secondary sort; in this case a very convenient solution is to define a specific object as a key.
+In order to use a user defined object as a key in Hadoop, it must implements the WritableComparable interface.
+The object must implement comparable so that a list of keys can be sorted using their compareTo method. 
+The object must implement writable in order to be serialized.
+The programmer must implements the two methods readFields(DataOutput out) and write(DataInput in). 
+In this specific case, we can extend IntWritable (Listing \ref{code:IntAndIdWritable}) in order to solve the problem in a very concise way.
+
+%\javalisting{IntAndIdWritable}{IntAndIdWritable class. This class implements both methods from the Writable and the Comparable interface. We omitted constructors and getter/setter methods for clarity.}
+
+There is a lot going on in this class. Consider the three phases that occur during shuffle \& sort.
+\begin{enumerate}
+\item Sort: elements are sorted. Based exclusively on the key.
+\item Partition: elements are partitioned to worker, this is based both on the key and the value (if necessary).
+\item Group: elements are grouped together in a single reduce() invocation. 
+The user can override the comparator and group together elements with different keys. Notice that every object can have different comparators for the sort and group phase.
+\end{enumerate}
+
+The first phase sorts the output from the mappers using the key. 
+In our class, we added an id and implemented a new compareTo method so that elements will be in the right order (element from the vector first).
+To be more efficient, the framework gives the programmer the possibility to implement a compare directly on the bytes of the serialized object in order to avoid serialization and deserialization during the shuffle \& sort phase.
+The inner class Comparator implements such compare on bytes.
+By doing so, the Sort phase will place the element coming from the vector \textbf{before} the elements from the matrix.
+However, this is not enough because elements from the vector and the matrix have different keys so they could be partitioned to different machines.
+We should ensure that they are sent to the same reducer task.
+This is done by defining an ad hoc partition function which in this \textbf{particular} case can be inherited from the superclass (IntWritable) without any modification. 
+The IntAndIdWritable class will inherit the hashcode method from the IntWritable class, the default HashPartitioner will be used and only the integer part of the object will be used for partitioning.
+By doing so, runs of elements will be assigned to the same reducer without considering the id, i.e. without considering if they are elements from the matrix or from the vector.
+Still this is not enough. 
+We ensured that the elements from the matrix and the vector having the same index are sent to the same reducer and they are sorted in such a way that the element from the vector is the first of the run. 
+Now we would like to receive both on a single sorted run invoking reduce().
+This is done by implementing a grouping comparator; a grouping comparator tells the framework when to collapse different runs (with different keys) in a single run. 
+In this specific case, we can declare the comparator of IntWritable as grouping comparator of IntAndIdWritable so elements with the same integer part will be grouped together ignoring the id.
+
+The whole implementation of secondary sort is not so simple since it requires redefinition of the different mechanisms.
+In this case, we managed to implement it with minimal modifications using the default partitioner and inheriting other mechanisms from IntWritable. 
+The reader may actually benefit from trying to implement the Secondary Sort from scratch redefining all the three interfaces (all the methods should work on raw binary data for better performance).
+
+\subsubsection{Generic Objects and Sequence Files}
+
+Now, consider a completely different problem of the naive implementation (Listing \ref{code:Map1Text}): we work with integers and double values and therefore using text for input/output and intermediate values is probably inefficient and lead to complex code.
+For intermediate values, Hadoop offers the possibility to use any type under the constrains that it should implement the WritableComparable interface.
+Hadoop also offers the possibility to use as Input and Output of a map reduce job serialized data (binary data). 
+This is done via the SequenceFile record reader and writer.
+This mechanism also produces a more readable and efficient code since key value pairs are stored as objects, instead of Text, without need for conversion. 
+In our case, the input key will corresponds to the column index of either the matrix or the vector.
+Similarly to what presented in Listing \ref{code:Map1Text} we can distinguish vector or matrix element from the filename.
+
+However we have the problem that values read from the input and emitted from mappers can either be a sparse element (value and coordinates) or a double value (a single vector element).
+Consider that it is not possible to exploit polymorphism; every object read or written by mappers and reducers must have the same \textbf{exact} type as specified in its type declaration\footnote{Consider a $Mapper<IntWritable,DoubleWritable,IntWritable,DoubleWritable>$. It should be possible to read an IntAndIdWritable (which inherit from IntWritable) as a key. Similarly it should be possible to write an IntAndIdWritable as an output key. However the framework does not permit such operations.}.
+Even if this breaks the Liskov substitution principle (which can be quite shocking for some of the readers of this report ), it is done for greater good.
+In fact, in order to use polymorphism every serialized element should contain a serialized id of its class increasing the amount of data transferred.
+This is done in the implementation of ObjectOutputStream in Java and it greatly increases the dimension of serialized data.
+Consider that in most cases, we do not want to serialize every possible type of object, but only a small set of different types.
+The framework has a specific solution to solve this problem: the GenericWritable Interface. 
+It provides the developer with a writable wrapper for different types of objects with a minimum overhead for serialization.
+
+In conclusion, Secondary Sort, Sequence Files and GenericWritable elements are used in order to ensure maximum performance and produce a concise and maintainable code.
+The final implementation is the following:
+
+%\javalisting{HPhase1}{First phase of matrix vector multiplication (Figure \ref{fig:Map1}).}
+ 
+Notice how object are reused in order to reduce the overhead of garbage collection, this overhead might be significant for very large computations (especially if jvm reuse is enabled).
+
+The second phase of matrix vector multiplication is instead very simple, temporary values of every row of the output vector are gouped together, summed, and final values are emitted; we will show its implementation without any further comment:
+
+%\javalisting{HPhase2}{Second phase of matrix vector multiplication (Figure \ref{fig:Map2}). Only the Reducer is shown since non computation is performed in the Map phase.}
 
 
+Context Variable - The serialization of a \CLASS{NMFVector} class need to know in advance the number of the elements of the vector itself. Since every vector that we use have the same size ($k$), depndent on the user choice, we decided to remove that information from the serialized data. However we need to know the value of $k$ during serialization and deserialization. The value of $k$ is saved as a static variable in the class NMFVector which is initialized once. The user specify the desired value of $k$ which is then saved in a context variable. When the information is needed by a mapper or a reducer, the main inserts in an associative array a context variable trough the method \METHOD{setInt()} available in the \CLASS{Configuration} class. The defined context variable can be accessed by the mappers and the reducers accessing to the context variable available in the configuration that the framework passes to all the mappers and reducers.
 
-\subsection{Secondary Sort}
+\subsection{Phase 2}
+\label{sec:phase2}
 
+\begin{center}
+	\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{./figures/Map2}
+	\caption{Second Phase of Map Reduce}
+	\label{fig:Map2}
+	\end{figure}
+\end{center}
 
-Phase1/5 output map problem: different type + ordering ------ la chiave degli elementi vmiene modificata e si prende solo la prima
-Secondary sorter
+\subsection{Phase 3}
+\label{sec:phase3}
 
-\subsection{Distributed File System}
+Some computation doesn't need to store the key. So in this case we emit a null key and the relevant data as value.
 
-The data organization in the the distributed file system is quite easy: the name of the input/output directory of the map-reduce phases is mainly handled by the bash scripts. The name of the directory identify the type of data stored into (first character)  and the number of the iteration at which it refers (last character). For example, the ``\textit{X\_PARTIALw6}'' refers to a ``non complete'' computation of the X matrix at the sixth iteration. Doing this clearly distinction, the mappers, in case of multiple input, can discriminate the type of the data passed as input split in the map setup phase.
+\subsection{Phase 4}
+\label{sec:phase4}
 
 In the phase 4, all the mapers use a global shared matrix called C. The matrix cannot be passed as standard input because otherwise the input will be splitted across the mappers. Instead, the file must be read directly from the Distributed File System by the mapper at setup phase. In our project, we assume that the user provides through the command line of the fourth phase the the path where the data of the C matrix is saved. Through the \CLASS{FileSystem} class is possible to browse the filesystem and take the desired file. The read of the file content is done using an instance of a \CLASS{SequenceReader} and reading the matrix contained into that file.
 
 
-\subsection{Reduction of occupied space}
+\subsection{Phase 5}
+\label{sec:phase5}
 
-In order to save occupied space of the files on the distributed file system, we adopt 3 main solution:
-\begin{itemize}
-
-  \item Sequence File - as already said, we use this modality to encode the data in binary format. 
-  
-  \item Null Writable - Some computation doesn't need to store the key. So in this case we emit a null key and the relevant data as value.
-  
-  \item Context Variable - The serialization of a \CLASS{NMFVector} class need to know in advance the number of the elements of the vector itself. Since every vector that we use have the same size ($k$), depndent on the user choice, we decided to remove that information from the serialized data. However we need to know the value of $k$ during serialization and deserialization. The value of $k$ is saved as a static variable in the class NMFVector which is initialized once. The user specify the desired value of $k$ which is then saved in a context variable. When the information is needed by a mapper or a reducer, the main inserts in an associative array a context variable trough the method \METHOD{setInt()} available in the \CLASS{Configuration} class. The defined context variable can be accessed by the mappers and the reducers accessing to the context variable available in the configuration that the framework passes to all the mappers and reducers.
-
-\end{itemize}
-
-
-
-
-
-
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-The computation of the H phase is very similar to the W's ones and
-most of the phase remain unchanged.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+\subsection{Update of the W matrix}
+\label{sec:Wphase}
 
 \section{Result}
 \label{result}
