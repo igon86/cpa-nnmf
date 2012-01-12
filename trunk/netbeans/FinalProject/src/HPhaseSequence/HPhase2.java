@@ -24,7 +24,7 @@ public class HPhase2{
 	public static class MyMapper extends Mapper<IntWritable, NMFVector, IntWritable, NMFVector> {
                 @Override
 		protected void setup(Context context){
-		    		    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
+                    NMFVector.setElementsNumber(context.getConfiguration().getInt("elementsNumber", 0));
 		}
 	}
 
@@ -84,10 +84,6 @@ public class HPhase2{
 		}
 	}
 
-	/**
-	 * @param args
-	 *            the command line arguments
-	 */
 	public static void main(String[] args) throws Exception
 	{
 		if(args.length != 4)
