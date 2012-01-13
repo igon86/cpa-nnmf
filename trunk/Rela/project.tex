@@ -215,7 +215,7 @@ However, the two operation are very similar.
        \end{itemize}
 
 
-     \subsubsection{$ X = H .* X ./ Y $}
+     \subsubsection{$ H = H .* X ./ Y $}
        \begin{itemize}
 
        \item MAP-V: Map $\langle j, h_j \rangle$, $\langle j, x_j
@@ -279,7 +279,7 @@ However, the two operation are very similar.
        \end{itemize}
 
 
-      \item \subsubsection{$ X = W .* X ./ Y $}
+      \item \subsubsection{$ W = W .* X ./ Y $}
         \begin{itemize}
 
          \item MAP-V: Map $\langle i, w_i \rangle$, $\langle i, x_i
@@ -332,8 +332,15 @@ We implemented the following classes:
   \item NMFMatrix: Matrix datatype with associated numerical operations.
   \item SparseElement: Element of a Sparse Matrix.
   \item SparseVectorElement: Element with a single coordinate.
-  \item IndAndIdWritable: A particular datatype used in the first phase (see Section \ref{sec:phase1}).
+  \item IndAndIdWritable: A particular datatype used in the first phase and last phase.
 \end{enumerate}
+
+IntAndIdWritable will be explained in detail in Section \ref{sec:phase1}.
+The other types are quite self explanatory but NMFVector require a few words.
+Every vector from matrix W and H has a fixed length $k$, it is inefficient to serialize the length information for every element.
+Therefore we did not use ArrayWritable but defined our own datatype.
+Length of vectors is stored as a static attribute of the NMFVector class and initialize in every mapper and reducer using a context variable.
+The context variable is initialized in the main of every phase.
 
 These classes can be used in intermediate key and value pairs, however we would like that each phase used our datatypes as input and output elements.
 This is possible using \textbf{Sequence Files.}
@@ -359,7 +366,7 @@ Therefore, we used combiners in every phase that could benefit from them.
 We also tried to reduce the amount of object created in each phase in order to reduce garbage collection.
 Moreover, we implemented phase 1 with particular attention in order to eliminate the need to store intermediate values (Section \ref{sec:phase1}).
 
-Specific details about the optimizations performed on each phase can be found in the following sections.
+Specific implementation details on each phase can be found in the following sections.
 
 \subsection{Phase 1}
 \label{sec:phase1}
@@ -475,15 +482,52 @@ The final implementation is the following:
  
 Notice how object are reused in order to reduce the overhead of garbage collection, this overhead might be significant for very large computations (especially if jvm reuse is enabled).
 
-The second phase of matrix vector multiplication is instead very simple, temporary values of every row of the output vector are gouped together, summed, and final values are emitted; we will show its implementation without any further comment:
+The final implementation of the phase 1 has the following structure:
+
+        \begin{itemize}
+        
+          \item MAP: Read from the input either SparseElements from Matrix A  or  row vectors of matrix W.
+          \begin{itemize}
+          
+          \item SparseElements: Read pairs $\langle i,( j, A_{i,j}) \rangle $ of type \\
+          $<$IntWritable , GenericWritable(SparseVectorElement)$>$.
+          \\
+          Emits pairs $\langle (i,"A"),( j, A_{i,j}) \rangle $ of type \\ 
+          $<$IntAndIdWritable , GenericWritable(SparseVectorElement)$>$.
+          
+          \item Vector: Read pairs $\langle i, w_i \rangle$ of type \\
+          $<$IntWritable , GenericWritable(NMFVector)$>$.
+          Emit pairs $\langle (i,"W"), w_i \rangle$ of type \\
+          $<$IntAndIdWritable , GenericWritable(NMFVector)$>$.          
+          \end{itemize}
+
+		\item SHUFFLE \& SORT: Elements from the same index are grouped together.
+		Using secondary sort elements are sorted in the following order: $$\langle (i,"W"), w_i \rangle,\langle (i,"A"),( j_1, A_{i,j}) \rangle , \langle (i,"A"),( j_2, A_{i,j}) \rangle , \cdots$$ where $j_1,j_2,\cdots \in \mathbb{O}_i $.
+			
+         \item REDUCE: Take  $ \langle i, \{w_{i}, (j, A_{i,j}) \}
+           \rangle$ and emit  $ \langle j, A_{i,j}  w_{i}^{T}
+           \rangle$ $\forall j \in \mathbb{O}_i $.
+
+         \end{itemize}
 
 %\javalisting{HPhase2}{Second phase of matrix vector multiplication (Figure \ref{fig:Map2}). Only the Reducer is shown since non computation is performed in the Map phase.}
 
-
-Context Variable - The serialization of a \CLASS{NMFVector} class need to know in advance the number of the elements of the vector itself. Since every vector that we use have the same size ($k$), depndent on the user choice, we decided to remove that information from the serialized data. However we need to know the value of $k$ during serialization and deserialization. The value of $k$ is saved as a static variable in the class NMFVector which is initialized once. The user specify the desired value of $k$ which is then saved in a context variable. When the information is needed by a mapper or a reducer, the main inserts in an associative array a context variable trough the method \METHOD{setInt()} available in the \CLASS{Configuration} class. The defined context variable can be accessed by the mappers and the reducers accessing to the context variable available in the configuration that the framework passes to all the mappers and reducers.
-
 \subsection{Phase 2}
 \label{sec:phase2}
+
+The second phase of the $W^T*A$ operation is very simple compared to the first one.
+Vectors from the first phase are grouped together using the column index, summed, and final column vectors of the matrix X are emitted (Figure \ref{fig:Map2}).
+The computation is composed by:
+\begin{itemize}
+          \item MAP: Is the identity mapper.
+			\item COMBINER: Receive vectors from local mappers sharing the same column index and periodically output partial sums.
+          \item REDUCE: Receive partial vector sums from combiners as $<$IntWritable columnIndex, NMFVector values$>$. 
+          Runs of values will contain all vectors having the same column index $j$. 
+          Emit $\langle j, x_j \rangle$ where $ x_j = \sum_{i \in \mathbb{O}^j} A_{i,j}  w_{i}^{T} $ as a $<$IntWritable , GenericElement$>$ pair.
+\end{itemize}
+This phase can greatly benefit from a combiner (in fact we implemented an ad hoc combiner for this phase).
+We could have used the Reducer as a combiner but notice that the Reducer has to change the type of values from NMFVector to GenericElement, this is necessary since matrix X is used as input of phase 5.
+\commento{link ai risultati}
 
 \begin{center}
 	\begin{figure}[h]
@@ -497,19 +541,78 @@ Context Variable - The serialization of a \CLASS{NMFVector} class need to know i
 \subsection{Phase 3}
 \label{sec:phase3}
 
-Some computation doesn't need to store the key. So in this case we emit a null key and the relevant data as value.
+This phase performs a matrix matrix multiplication, $C=W^T*W$.
+Notice that $C \in \mathbb{R}^{k*k}$ so it is very small compared to $W$.
+Therefore, this operation can be computed efficiently with just one step of Map Reduce.
+
+       \begin{itemize}
+
+         \item MAP: Read from Input pairs of type $<$IntWritable,NMFVector$>$ containing $\langle i, w_i \rangle$ and emit pairs of type $<$NullWritable,NMFMatrix$>$ containing  $\langle -,w_i^T w_i \rangle$.
+
+          \item REDUCE: Since NullWritable is used in the Map Phase a single Reducer will be instantiated. It will receive a single run of values of type NMFMatrix to be summed ($\langle 0,\{w_i^T w_i\}_{i=1}^{m} \rangle $). It will emit the final result $\sum_{i=1}^{m} w_i^T w_i$ as a pair $<$NullWritable,NMFMatrix$>$.
+
+       \end{itemize}
+Notice how we used NullWritable both to reduce communications (we could have used a dummy key) and to send all intermediate values to a single reducer.
+It could seem that this phase could be a bottleneck for the whole application since the reduce phase is performed sequentially on a single node.
+However, by using combiners, we can solve this problem.
+The Reducer will receive partial sums of the set of matrices $\langle 0,\{w_i^T w_i\}_{i=1}^{m} \rangle $.
+\commento{link ai risultati e al numero di record risparmiati}
 
 \subsection{Phase 4}
 \label{sec:phase4}
 
-In the phase 4, all the mapers use a global shared matrix called C. The matrix cannot be passed as standard input because otherwise the input will be splitted across the mappers. Instead, the file must be read directly from the Distributed File System by the mapper at setup phase. In our project, we assume that the user provides through the command line of the fourth phase the the path where the data of the C matrix is saved. Through the \CLASS{FileSystem} class is possible to browse the filesystem and take the desired file. The read of the file content is done using an instance of a \CLASS{SequenceReader} and reading the matrix contained into that file.
+This phase is another matrix matrix multiplication; also in this case we can implement it efficiently, just using a Map phase.
+This is possible since the matrix C produced in the previous step is very small.
+Therefore every node can access it and store it in local memory very efficiently.
 
+\begin{itemize}
+
+         \item MAP: In the setup phase it store in a local buffer the Matrix C.
+         			Then, it read from input the pairs $ \langle j, h_j \rangle$ of type $<$IntWritable, NMFVector $>$ and produce $ \langle j, y_j = C*h_j \rangle$.
+
+\end{itemize}
+
+Notice that the matrix C cannot be passed as a standard input of Hadoop.
+Instead, the file must be read directly from the Distributed File System by every mapper during the setup phase. 
+In our project, we assumed that the user provides through the command line of the fourth phase the the path where the C matrix is stored. 
+Through the \CLASS{FileSystem} class is possible to access the desired file while the file content can be read using an instance of \CLASS{SequenceReader}.
 
 \subsection{Phase 5}
 \label{sec:phase5}
 
+Phase 5 performs the following operation:
+$$ H = H.*X./Y$$
+This is a \textbf{pointwise} operation so it could be performed in a single Map Reduce step very efficiently.
+In fact, every column of $H_new$ could be computed independently of the other.
+\begin{itemize}
+
+         \item MAP: Read vectors of data from either matrix H,X or Y as pairs of type $<$IntWritable , GenericElement$>$.
+         As usual, the key is the index of the vector in the Matrix.
+         It emits the pairs as $<$IntAndIdWritable , GenericElement$>$ so $\langle j, h_j \rangle$ becomes $\langle (j,h), h_j \rangle$.
+
+          \item REDUCE: Every Reducer receives three pairs: $\langle (j,h), h_j \rangle$, $\langle (j,x), x_j \rangle$ and $\langle (j,y), y_j \rangle$. They are received in this exact order since secondary sort is used. It emits $<j,h_{new}> = \langle j, h_j*x_j/y_j \rangle$.
+
+\end{itemize}
+
+This phase is quite straightforward.
+Notice that we used secondary sort in order to receive vectors from X,H and Y in a predefined order and simplify the reducer phase.
+
 \subsection{Update of the W matrix}
 \label{sec:Wphase}
+
+There are few differences between update of the H and the W matrix.
+In fact, only phase 1 and 4 contains small modifications in the code with respect to the update of the H matrix.
+These are the differences:
+\begin{enumerate}
+\item Phase 1: Matrix W and H are stored as $<row, (column,value)>$. 
+The Mapper has to invert the order between row and column index producing $<(column,id),(row,value)>$.
+\item Phase 4: The matrix C is read during the setup phase as in \ref{sec:phase4}. 
+However, we have to perform $W*C$ instead of $C*Y$.
+Therefore a \textbf{left} matrix vector multiplication method is used.
+\end{enumerate}
+
+We could have collapsed these small differences between the W and H matrix update.
+However, we wanted to maintain code as simple (and faster) as possible even if it lead to some duplication of code.
 
 \section{Result}
 \label{result}
@@ -523,6 +626,5 @@ In the phase 4, all the mapers use a global shared matrix called C. The matrix c
 \bibliographystyle{plain}
 
 \bibliography{biblio}
-
 
 \end{document}
