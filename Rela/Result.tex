@@ -1,0 +1,18 @@
+\section{Result}
+
+To compare the results shown in the article [ref], we test our implementation for all the cases reported in that article. All the tests reported below are executed on Pianosa\footnote{\url{http://pianosa.di.unipi.it/Home_pianosa/html/info.html}}, the Computer Science Department's Cluster in Pisa. The cluster is composed by 24 omogeneous nodes. The nodes are 800 Mz Pentium III with 1GB of main memory and they are connected together throught a Fast Ethernet interconnection network. On that cluster, we istalled an Hadoop 0.20.2 framework with the following characteristics:
+
+\begin{itemize}
+\end{itemize}
+HADOOP INSTALLATION
+
+
+
+
+We wrote two random matrix generators in MathLab, one for the matrix A and another one for the matrices W and H. Both generators produce positive elements gaussian distributed. The first one is a sparse matrix generator and its sparsity factor can be tuned througth an input parameter. The second one, instead, is a complete matrix generator. In our tests, we fix the m and n parameters respectively to 105000 and 20000.
+
+For the first test battery, we test how the computation scales in relation with the size of the data submitted. 
+
+In the first test executed, the number of non-zero elements in the sparse matrix is changed between $5000000$ and $80000000$ elements while the k parameter remain fixed to 10. 
+
+
