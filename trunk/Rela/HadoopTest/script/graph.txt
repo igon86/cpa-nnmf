@@ -1,0 +1,29 @@
+set xlabel 'Number of elements' 
+set ylabel 'Seconds' 
+set zlabel
+set output
+set terminal x11
+set terminal postscript monochrome
+set out "DeltaVar.ps"
+set size 
+set title 'Time Completion with different A matrix sparsity' 
+set key right  top Right noreverse samplen 4 spacing 1.25 title  '' nobox 
+set xtics border mirror norotate  
+set ytics border mirror norotate  
+unset ztics
+unset x2tics
+unset y2tics
+unset logscale xyz
+unset logscale x2
+unset logscale y2
+set bar 
+set boxwidth 
+set view 60, 30, 1, 1
+set ticslevel 0.5
+unset hidden3d
+set isosamples 10, 10
+set yrange [100:11000]
+
+plot [4500000:90000000] '/home/red/Desktop/HadoopTest/delta.txt' using ($1):($2) with linespoints title "Completion Time", '/home/red/Desktop/HadoopTest/delta.txt' using ($1):($1*521/5183338) with linespoints title "Expected Completion Time" axes x1y1
+
+
