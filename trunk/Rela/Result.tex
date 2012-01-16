@@ -48,4 +48,47 @@ The second test battery points to examine the behaviour of the implementation wh
         \label{NScal}
 \end{figure}
 
-As we can see.....
+As we can see from the figure \ref{NScal}, the implemented algorithm doesn't scale vary well. This is due to mainly two facts, some phases in the computation does't scale adding more slave nodes, others, instead, doesn't exibit an optimal scalability. This scenario is further compromize, taking in account that the completion time is given by the sequentialization of 5 different parallel phases. %The below table show the percentage that every phase in the computation takes varying the parallel degree.
+
+
+%\begin{center}
+%\begin{tabular}{ | l || c | c | c | c |  c | c | }
+%  \hline      
+%  Phase & 1 & 2 & 4 & 8 &16 & 21 \\
+%  \hline      
+%  Phase 1 & 0,512 & 0,557 & 0,542 & 0,476 & 0,494 & 0,510\\
+%  Phase 2 & 0,446 & 0,390 & 0,374 & 0,356 & 0,341 & 0,300\\
+%  Phase 3 & 0,015 & 0,019 & 0,026 & 0,043 & 0,047 & 0,051\\ 
+%  Phase 4 & 0,006 & 0,009 & 0,015 & 0,028 & 0,030 & 0,036\\
+%  Phase 5 & 0,016 & 0,023 & 0,041 & 0,095 & 0,086 & 0,101\\
+%  \hline  
+%\end{tabular}
+%\end{center}
+
+Furthermore, we make additional test to verify that the assumption done during the project were verified. The first one reguards the coding of the data in sequential file during the ``internal phases''. The data shown in the below table show that coding the data provide a lot of benefits in the completion time.
+
+\begin{center}
+\begin{tabular}{ | l || c | c | }
+  \hline      
+  & Text & Sequence \\
+  \hline      
+  Phase 1 & 475 & 264 \\
+  Phase 2 & 333 & 105 \\
+  Phase 3 & 66 & 42 \\ 
+  Phase 4 & 18 & 15 \\
+  Phase 5 & 36 & 35 \\
+  \hline  
+\end{tabular}
+\end{center}
+
+
+
+
+
+
+
+
+
+
+
+
