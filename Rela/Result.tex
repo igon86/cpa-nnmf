@@ -101,18 +101,28 @@ Furthermore, we make additional test to verify that the assumption done during t
 The second additional test regards the combiner improvement in the completion time. The test are done taking in account the following parameters: A contains 16000000 elements, k is set to 25 and the parallel degree is 8. The below table show the result obtained by the test.
 
 \begin{center}
-
-\begin{tabular}{ | l || c | c || c | c| c }
+\label{comb_table}
+\begin{tabular}{ | l || c | c | }
   \hline      
-  & \multicolumn{2}{|c||}{Record Number} & \multicolumn{3}{|c|}{Completion Time} \\
-  & with Combiner & without Combiner & with Combiner & without Combiner & Gain\\
+  & \multicolumn{2}{|c|}{Record Number} \\
+  & with Combiner & without Combiner \\
   \hline      
-  H Phase 2 & 2009983 & 16406079 & 243 & 412 & 169 \\
-  W Phase 2 & 7054453 & 16406079 & 330 & 425 & 95 \\ 
-  H Phase 3 & 27 & 105000 & 46 & 130 & 84 \\ 
-  W Phase 3 & 27 & 20000 & 40 & 53 & 13 \\ 
+  H Phase 2 & 2009983 & 16406079 \\
+  W Phase 2 & 7054453 & 16406079 \\ 
+  H Phase 3 & 27 & 105000 \\ 
+  W Phase 3 & 27 & 20000 \\ 
+ \hline  
+  \hline      
+  & \multicolumn{2}{|c|}{Completion Time} \\
+  & with Combiner & without Combiner \\
+  \hline      
+  H Phase 2 & 243 & 412 \\
+  W Phase 2 & 330 & 425 \\ 
+  H Phase 3 & 46 & 130 \\ 
+  W Phase 3 & 40 & 53 \\ 
  \hline  
 \end{tabular}
+
 \end{center}
 
 
