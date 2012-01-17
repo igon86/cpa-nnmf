@@ -29,6 +29,33 @@
 \newcommand{\CLASS}[1] {\textit{#1}}
 \newcommand{\nmf}{\textit{NMF}}
 
+\lstdefinestyle{java}{
+    	language=Java, 								% choose the language of the code
+		basicstyle=\footnotesize,       			% the size of the fonts that are used for the code
+		%numbers=left,                   			% where to put the line-numbers
+		%numberstyle=\tiny,      					% the size of the fonts that are used for the line-numbers
+		stepnumber=4,                   			% the step between two line-numbers. If it's 1 each line will be numbered
+		numbersep=4pt,                  			% how far the line-numbers are from the code
+		backgroundcolor=\color{white},  	% choose the background color. You must add \usepackage{color}
+		showspaces=false,               			% show spaces adding particular underscores
+		showstringspaces=false,         		% underline spaces within strings
+		showtabs=false,                 				% show tabs within strings adding particular underscores
+		frame=shadowbox,							% display a frame around the code
+		tabsize=4,                      					% sets default tabsize to 2 spaces
+		captionpos=b,                   				% sets the caption-position to bottom
+		breaklines=true,                				% sets automatic line breaking
+		breakatwhitespace=false,        		% sets if automatic breaks should only happen at whitespace
+		escapeinside={(*@}{@*)},          		% if you want to add a comment within your code
+		% added by max
+		mathescape=true,					
+		columns=flexible,
+}
+
+\newcommand{\javalisting}[2]{
+	\lstinputlisting[style=java,label=code:#1,caption=#2]{./code/#1.java}
+} 
+
+
 \newcommand{\commento}[1]{\begin{color}{white}\colorbox{black}{
 	\textit{\textbf{==) \texttt{ [#1] (==}}}}\end{color}
 }
@@ -71,11 +98,11 @@
 
 The scope of this project is to implement the Non Negative Matrix Factorization algorithm with multiplicative update as presented in \citep{liu2010}.
 The main application of this algorithm is for Text Mining \cite{05abstractemail}.
-The algorithm is implemented in a Map Reduce fashion using the Apace Hadoop framework.
-We will not cover algorithmic details, we will focus instead on the implementation of the multiplicative update method in Hadoop and study its scalability.
-The Non Negative Matrix Factorization family of algorithms is presented in Section \ref{nmf} with a particular interest on the  implemented method of multiplicative update. 
-A general outline of a Map Reduce implementation is presented in Section \ref{mapreduce} while implementations details are presented in Section \ref{implementation}.
-Final results and outlines for a future work are presented in Section \ref{result} and Section \ref{conclusion}.
+The algorithm is developed in a Map Reduce fashion using the Apache Hadoop framework.
+We will not cover algorithmic details, but instead we will focus on the implementation of the multiplicative update method in Hadoop and study its scalability.
+The Non Negative Matrix Factorization family of algorithms is presented in Section \ref{nmf} with a particular interest on the   multiplicative update method. 
+A general outline of a Map Reduce implementation is presented in Section \ref{mapreduce} while implementations details are presented in Section \ref{sec:implementation}.
+The final results and the outlines for future work are presented in Section \ref{result} and Section \ref{conclusion}.
 
 \end{abstract}
 
@@ -85,8 +112,9 @@ Final results and outlines for a future work are presented in Section \ref{resul
 Non Negative Matrix Factorization algorithms (NMF) are a group of numerical algorithms for matrix factorization.
 A matrix A is factorized by a NMF algorithm in two matrix W and H. 
 The matrix A's elements must be non negative (greater or equal by 0) by assumption. 
-The factorization has the property of $ A \simeq W H $ and both the matrices W and H are also non negative. 
-This factorization is in general not unique, in fact, let assume that $W_1$ and $H_1$ are a factorization of the matrix A, it's possible to find another factorization using a matrix $L$ and its inverse: $A \simeq W_1 H_1 = ( W L ) (L^{-1} H) = W_2 H_2  $. 
+The factorization has the property of $ A \simeq W H $ and both matrices W and H are non negative. 
+This factorization is in general not unique, and in fact, let's assume that $W_1$ and $H_1$ are a factorization of the matrix A.
+It's possible to find another factorization using a generic matrix $L$ and its inverse: $A \simeq W_1 H_1 = ( W L ) (L^{-1} H) = W_2 H_2  $. 
 
 The non negative matrix factorization problem can be formulated as follows:
 \begin{mydef} \textbf{Non Negative Matrix Factorization}
@@ -103,10 +131,13 @@ Obviously, the smaller is the norm of the residual matrix ($D = A - WH$), the be
 Furthermore, by choosing a $K$ less than $\frac{m * n}{m + n} $ the space needed to store the matrix decrease.
 
 
-The Non Negative Matrix Factorization (NMF) is a conical coordinate transformation\cite{Nikolaus07learningthe} where the $W$ matrix describe the basis vector and all the element in the dataset are enclosed in the cone identified by W. Each element, being in the cone, can be expressed as positive linear combinations of vectors in W. The NMF is equivalent to a relaxed form of K-means clustering where the matrix W contains cluster centroids and H contains cluster membership indicators when least square function is used as estimator of the distance.
+The Non Negative Matrix Factorization (NMF) is a conical coordinate transformation \cite{Nikolaus07learningthe} where the $W$ matrix describes the basis vector and all the elements in the dataset by enclosing in the cone identified by W. 
+Each element, in the cone, can be expressed as positive linear combinations of vectors in W. 
+The NMF is equivalent to a relaxed form of K-means clustering where the matrix W contains cluster centroids and H contains cluster membership indicators when the least square function is used as estimator of the distance.
 
 
-As said before, the non negative matrix factorization is a group of algorithm. The algorithm used in this project is the Multiplicative Update Algorithm but there exist other type of algorithm such as the Gradient Descent algorithm\cite{gradient} and Alternating Least Square Algorithm\cite{least}. 
+As previously mentioned, the non negative matrix factorization is a group of algorithms. 
+The algorithm used is the Multiplicative Update Algorithm, but there exists other types of algorithms such as the Gradient Descent algorithm\cite{gradient} and Alternating Least Square Algorithm\cite{least}. 
 
 The code of the algorithm is listed below using MatLab syntax.
 \begin{lstlisting}[style=matlab,label=code:nmf,caption=Pseudocode of the multiplicative update algorithm. The .* and ./ operators stand for element by element multiplication and division.]
@@ -121,15 +152,15 @@ for i = 1 : number_of_iterations
 end
 \end{lstlisting}
 
-The Multiplicative Update Algorithm generally converge to a point that is not the global minimum of $f(W,H)$ (Definition \ref{def:nmf}).
+The Multiplicative Update Algorithm generally converges to a point that is not the global minimum of $f(W,H)$ (Definition \ref{def:nmf}).
 Moreover, given a pair $(W_1,H_1)$, it is also not possible to determine if $\exists \; (W_2,H_2) \; . \;f(W_2,H_2) \leq f(W_1,H_1)$, unless such a pair $(W_2,H_2)$ is found by applying the method with different initial conditions. 
-Therefore, current research on \nmf family of algorithms focus on how to choose initial factors in order to discover a global minimum.
+Therefore, current research on the \nmf  family of algorithms focuses on how to choose initial factors in order to discover a global minimum.
 
 More precisely, current research on Non Negative Matrix Factorization regards:
 \begin{itemize}
-  \item Algorithmic -- How the factors and factor initialization can discover a global minimum instead a local minimum and speed-up the convergence process.
+  \item Algorithmic -- How to choose initial parameters in order to discover a global minimum instead a local minimum and speed-up the convergence process.
    \item Scalability -- How the problem can scale when the dimension of the matrix increase.
-    \item Online -- How update factorization when new data comes without the need of a recomputing from scratch.
+    \item Online -- How to update the factorization when new data is known without the need of a recomputing from scratch.
 \end{itemize}
 
 We will focus on the second problem.
@@ -137,11 +168,10 @@ We will focus on the second problem.
 \section{Map Reduce Algorithm }
 \label{mapreduce}
 
-For our implementation we assumed that the distribution of the values of the input matrix was gaussian.
+For our implementation, we assumed that the distribution of the values of the input matrix was gaussian.
 If this is the case, the computation has the form of Listing \ref{code:nmf}.
-Now we have to discuss how this rather simple algorithm can be implemented in Map Reduce\cite{liu2010}.
-In order to do so, we will consider separately the update of the $\mathcal{H}$ matrix (Figure \ref{fig:mapReduceScheme}) and the update of the $\mathcal{W}$ matrix.
-However, the two operation are very similar.
+Now, we discuss how this rather simple algorithm can be implemented in Map Reduce\cite{liu2010}.
+We will consider separately the update of the $\mathcal{H}$ matrix (Figure \ref{fig:mapReduceScheme}) and the update of the $\mathcal{W}$ matrix, even though, the two operation are very similar.
 
 \begin{center}
 	\begin{figure}[h]
@@ -154,17 +184,17 @@ However, the two operation are very similar.
 
  \subsection{Update of the H Matrix}
  \label{sec:hupdate}
-    From Figure \ref{fig:mapReduceScheme} we can see that the algorithm can be divided in three main phases:
+    From Figure \ref{fig:mapReduceScheme}, we can see that the algorithm is divided in three main phases:
     
   \subsubsection{$ X = W^T * A $}
-        This operation is equivalent to multiply a sparse matrix with a vector. 
-        Consider that $k$ is usually less than 100 so the matrix W is equivalent to a vector. 
+        This operation is computationally equivalent to multiplication of a sparse matrix with a vector. 
+        Consider that $k$ is usually less than 100 so the matrix W is very narrow. 
 		Let $x_j$ denote the $j^{th}$ column of X, and $w_i$ denote the $i^{th}$ row of W.
 		We use $\mathbb{O}$ to indicate non zero elements of A, i.e. $\mathbb{O} = \{ (i,j) \;|\; A_{i,j}  \neq 0 \}$.
 		Similarly $\mathbb{O}_i = \{j \;|\; A_{i,j} \neq 0 \}$ and $\mathbb{O}^j = \{i \;|\; A_{i,j} \neq 0 \}$.
 		We have that
         $$ x_j = \sum_{i=1}^{m} A_{i,j} w_{i}^{T} = \sum_{i \in \mathbb{O}_i} A_{i,j} w_{i}^{T} $$ 
-        This operation can be implemented with two steps of map reduce.
+        This operation is implemented with two steps of map reduce.
         
         \begin{itemize}
           \item MAP-I: Map $ \langle i, j, A_{i,j} \rangle $ and $\langle i, w_i \rangle$ on i
@@ -189,14 +219,15 @@ However, the two operation are very similar.
 
 
      \subsubsection{$ Y = W^T * W * H $}
-       It's wise to compute Y by first computing $C= W^T W$ and then
+       It is wise to compute Y by first computing $C= W^T W$ and then
        $Y=CH$ because it maximizes the parallelism while requiring
-       fewer multiplications than $Y= W^T (W H)$. With the partitioning
-       of W along the short dimension, calculation of $ W^T W $ can be
+       fewer multiplications than $Y= W^T (W H)$. 
+       With the partitioning of W along the smaller dimension, calculation of $ W^T W $ can be
        fully parallelized because $$ W^T W = \sum_{i=1}^{m} w_i^T. $$
        It means that each machine can first compute $w_i^T w_i$  (a
        small k × k matrix) for all the $w_i$’s it hosts, and then send
-       them over for a global summation. The C matrix must be make
+       this partial results to a \textbf{single} reducer. 
+       The C matrix must be make
        available to all the entities of the following phase as global
        shared data.
 
@@ -231,14 +262,14 @@ However, the two operation are very similar.
 
 	
 	\subsection{Computation of the updated W Matrix}
-    This phase is very similar to the update of the H matrix.
+    This sequence of phases is very similar to the update of the H matrix.
 
     \begin{itemize}
       \item \subsubsection{$ X = A * H^T $}
-        This schema can be used to multiply any two giant matrices when one
-        is sparse ad the other is narrow. Let $x_i$ denote the $i^{th}$ row of X, then 
+        This phase is computationally equivalent to a matrix vector multiplication. The only difference with phase 1 of the update of matrix H is the fact that in this case the order of multiplication of the matrix and the vector is reversed. 
+        Let $x_i$ denote the $i^{th}$ row of X, then 
         $$ x_i = \sum_{j=1}^{m} A_{i,j} h_{j} = \sum_{j \in \mathbb{O}_i} A_{i,j} h_{j} $$
-        This operation can be implemented as two set of map/reduce
+        This operation is implemented as two set of map/reduce
         operations.
         \begin{itemize}
           \item MAP-I: Map $ \langle i, j, A_{i,j} \rangle $ and $\langle j, h_j \rangle$ on j
@@ -259,8 +290,9 @@ However, the two operation are very similar.
          \end{itemize}
 
      \item \subsubsection{$ Y = W * H * H^T $}
-       It's wise to compute Y by first computing $C= H H^T$ and then
-       $Y=WC$. The C matrix must be make available to all the entities
+       It is wise to compute Y by first computing $C= H H^T$ and then
+       $Y=WC$. 
+       The C matrix must be made available to all the entities
        of the following phase as global
        shared data.
 
@@ -298,8 +330,8 @@ However, the two operation are very similar.
 \section{Implementation}
 \label{sec:implementation}
 
-In this section we will analyze the implementation's choices and specify the Hadoop's key features used. 
-We refined our implementation many times as we became more confident with the framework and its mechanism; every modification leading to better performance and more maintainable code.
+In this section we will analyze the implementation choices and specify the Hadoop's key features that were used. 
+We refined our implementation many times as we became more confident with the framework and its mechanism: every modification leading to better performance and more maintainable code.
 We are going to first introduce the motivations that guided our design choices and some of the \textit{breakthrough} on the framework that made us restart from scratch.
 Then, we will comment in detail on the implementation of the various phases.
 
@@ -307,11 +339,12 @@ Then, we will comment in detail on the implementation of the various phases.
 Our first implementation used mainly Text as key or value type.
 This is convenient since the programmer has complete control on how information is passed from one stage to another.
 It is also very easy to build an application storing all information as text.
-However this solution has some problems:
+However, this solution had some problems:
 \begin{itemize}
-\item Code is not easily \textbf{maintainable} and \textbf{modifiable} as every phase basically performs string manipulation. Making a modification on the pattern of storage of information requires modification in all the codebase.
-\item We are not working with Text, storing matrices as text pose problems of space occupancy, precision and efficiency. 
-Storing floating point values as text is inefficient in terms of space.
+\item Code is not easily \textbf{maintainable} and \textbf{modifiable} as every phase performs string manipulation. 
+Making a modification on the pattern of storage of information requires modification in all the codebase.
+\item Storing matrices as text pose problems of space occupancy, precision and efficiency. 
+In fact, storing floating point values as text is inefficient in terms of space.
 Moreover, in order to perform arithmetic operations it is necessary to parse numeric values, perform the operation and convert them back to string.
 This leads to poor performance and excessive garbage collection.
 \end{itemize}
@@ -323,7 +356,7 @@ In order to achieve this goal, each classes representing an object in our applic
   \item \METHOD{compareTo()} - for comparing two element in the case the type is used as key.
 \end{itemize}
 
-Also dual methods for reading/writing in human-readable format is defined in the method \METHOD{parseLine()} and \METHOD{toString()}.
+Also, dual methods for reading and writing in human-readable format is defined in the method \METHOD{parseLine()} and \METHOD{toString()}.
 The mathematical operations that can be done on the different types are implemented directly in the class as instance method (e.g. multiplication matrix per vector, vector per vector and so on).
 
 We implemented the following classes:
@@ -336,10 +369,10 @@ We implemented the following classes:
 \end{enumerate}
 
 IntAndIdWritable will be explained in detail in Section \ref{sec:phase1}.
-The other types are quite self explanatory but NMFVector require a few words.
-Every vector from matrix W and H has a fixed length $k$, it is inefficient to serialize the length information for every element.
-Therefore we did not use ArrayWritable but defined our own datatype.
-Length of vectors is stored as a static attribute of the NMFVector class and initialize in every mapper and reducer using a context variable.
+The other types are quite self explanatory, but NMFVector requires a few words.
+Every vector from matrix W and H has a fixed length $k$; it is inefficient to serialize the length information for every element.
+Therefore, we did not use \textit{ArrayWritable}, but defined our own datatype.
+The length of vectors is stored as a static attribute of the NMFVector class and initialized in every mapper and reducer using a context variable.
 The context variable is initialized in the main of every phase.
 
 These classes can be used in intermediate key and value pairs, however we would like that each phase used our datatypes as input and output elements.
@@ -356,26 +389,26 @@ Different tools (written as of Map/Reduce programs) for converting the data from
 
 We wanted to keep every phase (Figure \ref{fig:mapReduceScheme}) separated in order to ease debugging and performance tests.
 However, update of the W and H matrix are complex operation that requires 5 steps each.
-Therefore we developed a set of bash scripts to control input and output folder and maintain a consistent state on the distributed file system.
+Therefore, we developed a set of bash scripts to control input and output folder and maintain a consistent state on the distributed file system.
 This is very important since folder names should be chosen wisely in order to ensure correctness of the application (see Section \ref{sec:phase1} and \ref{sec:phase5})
 
 \paragraph{Optimization of communications and object creation}
 
 It is very important to try to reduce the amount of data transferred in order to ensure maximum performance.
 Therefore, we used combiners in every phase that could benefit from them.
-We also tried to reduce the amount of object created in each phase in order to reduce garbage collection.
-Moreover, we implemented phase 1 with particular attention in order to eliminate the need to store intermediate values (Section \ref{sec:phase1}).
+We also tried to reduce the amount of objects created in each phase in order to reduce garbage collection.
+Moreover, we implemented phase 1 with particular attention in order to maintain a streaming model of computation,  (Section \ref{sec:secondary}).
 
 Specific implementation details on each phase can be found in the following sections.
 
 \subsection{Phase 1}
 \label{sec:phase1}
 
-This phase is both the most complex to implement and the most greedy in terms of resources (Graph \ref{}).
-Therefore we tried to implement it in the most efficient way.
+This phase is both the most complex to implement and the most greedy in terms of resources.
+Therefore, we tried to implement it in the most efficient way.
 We had to change our design multiple times so we are going to thoroughly explain the optimizations that we used.
 
-We already explained in Section \ref{sec:hupdate} that the first and second phase basically corresponds to a matrix vector multiplication since the W matrix is narrow.
+We already explained in Section \ref{sec:hupdate} that the first and second phase correspond to a matrix vector multiplication since the W matrix is very narrow.
 
 \begin{center}
 	\begin{figure}[h]
@@ -386,29 +419,28 @@ We already explained in Section \ref{sec:hupdate} that the first and second phas
 	\end{figure}
 \end{center}
 
-It does not seem like a complex operation to implement in Hadoop but it require some attention in order to be implemented correctly.
+It does not appear to be a complex operation to implement in Hadoop, but it requires some attention in order to be implemented correctly.
 The first step in particular is somewhat tricky. 
 Let's analyze it in detail.
 \begin{enumerate}
-\item The mapper should distinguish between the matrix element and the vector element. 
+\item The mapper should distinguish between the elements of matrix A and the vector elements of matrix W. 
 It also has to emit data structured differently in the two cases.
-\item Similarly, the reducer has to distinguish between an element from the vector or the matrix.
-\item Consider the output of the reducer $<i, A_{i,n}*v_{n}> \; \forall \; A_{i,n} \;|\; A_{i,n} \neq 0$. We would like to receive $v_n$ before the elements of the matrix since $v_n$ is used in every multiplication performed by the reducer.
-\item We are using two steps of map reduce in sequence and the information is not implicitly text (they are numbers), we would like to minimize the size of the data transferred.
-\item We would like to have a well organized/maintainable code; this is a general concern.
+\item Similarly, the reducer has to distinguish between the elements  of matrix A and the vector elements of matrix W.
+\item Consider the output of the reducer $ x_j = \sum_{i=1}^{m} A_{i,j} w_{i}^{T} = \sum_{i \in \mathbb{O}_i} A_{i,j} w_{i}^{T}$.
+ We would like to receive vector $w_i$ before the elements of the matrix since $w_i$ is used in every multiplication performed by the reducer.
+\item We are using two steps of map reduce in sequence and the information is not implicitly text (they are numbers) and we would like to minimize the size of the data transferred.
+\item We want to have a well organized/maintainable code.
 \end{enumerate}
 
 \FloatBarrier
-The first two concerns are functional, it is necessary to distinguish elements from A and v, otherwise the computation will be incorrect.
+The first two concerns are functional, in fact it is necessary to distinguish elements from A and W, otherwise the computation will be incorrect.
 So let's consider a preliminary straightforward implementation.
 
-%\javalisting{Map1Text}{Code of the first Map Reduce phase. We assume that the vector is saved on multiple files stored in a folder with the filename starting with V. Similarly for the matrix A. }
-
-We solved the problem of distinguishing between A and v in the mapper using the filename of the chunk. 
+We solved the problem of distinguishing between A and W in the mapper using the filename of the chunk. 
 Similarly, we solved the problem in the reducer by adding an annotation in the intermediate values. 
-Mapper and Reducers can distinguish between data from the vector or the matrix.
+Now, Mappers and Reducers can distinguish between data from the two matrices.
 We are also using text to save intermediate values so we can arrange the structure of the data as we want.
-Now let's consider non functional constrains.
+Now, we consider non functional constrains.
 This solution is inefficient since the reducer has to store every element received from the matrix. 
 The order of the values received is random.
 A possible optimization is to buffer elements from A \textbf{until} the element from the vector is received and then, flush the buffer and output final elements in a streaming fashion.
@@ -417,18 +449,17 @@ We can overcome this problem using the shuffle \& sort phase and ensure that the
 This problem of having values (not only keys) sorted can be found in literature as \textbf{Secondary Sort}.
 
 \subsubsection{Secondary Sort}
+\label{sec:secondary}
+
 
 What we want to accomplish with secondary sort is to have runs of values from a key ordered depending on our needs.
 There are many possible ways to implement a secondary sort; in this case a very convenient solution is to define a specific object as a key.
-In order to use a user defined object as a key in Hadoop, it must implements the WritableComparable interface.
-The object must implement comparable so that a list of keys can be sorted using their compareTo method. 
-The object must implement writable in order to be serialized.
-The programmer must implements the two methods readFields(DataOutput out) and write(DataInput in). 
+In order to utilize a user defined object as a key in Hadoop, it must implements the WritableComparable interface.
+The object must be comparable so that a list of keys can be sorted using their compareTo method. 
+The object must be writable in order to be serialized using the methods readFields(DataOutput out) and write(DataInput in). 
 In this specific case, we can extend IntWritable (Listing \ref{code:IntAndIdWritable}) in order to solve the problem in a very concise way.
 
-%\javalisting{IntAndIdWritable}{IntAndIdWritable class. This class implements both methods from the Writable and the Comparable interface. We omitted constructors and getter/setter methods for clarity.}
-
-There is a lot going on in this class. Consider the three phases that occur during shuffle \& sort.
+Consider the three phases that occur during shuffle \& sort.
 \begin{enumerate}
 \item Sort: elements are sorted. Based exclusively on the key.
 \item Partition: elements are partitioned to worker, this is based both on the key and the value (if necessary).
@@ -442,13 +473,14 @@ To be more efficient, the framework gives the programmer the possibility to impl
 The inner class Comparator implements such compare on bytes.
 By doing so, the Sort phase will place the element coming from the vector \textbf{before} the elements from the matrix.
 However, this is not enough because elements from the vector and the matrix have different keys so they could be partitioned to different machines.
-We should ensure that they are sent to the same reducer task.
+We must ensure that they are sent to the same reducer task.
 This is done by defining an ad hoc partition function which in this \textbf{particular} case can be inherited from the superclass (IntWritable) without any modification. 
-The IntAndIdWritable class will inherit the hashcode method from the IntWritable class, the default HashPartitioner will be used and only the integer part of the object will be used for partitioning.
+The IntAndIdWritable class will inherit the hashcode method from the IntWritable class and the default HashPartitioner will be used.
+Therefore, only the integer part of the object will be used for partitioning.
 By doing so, runs of elements will be assigned to the same reducer without considering the id, i.e. without considering if they are elements from the matrix or from the vector.
 Still this is not enough. 
 We ensured that the elements from the matrix and the vector having the same index are sent to the same reducer and they are sorted in such a way that the element from the vector is the first of the run. 
-Now we would like to receive both on a single sorted run invoking reduce().
+Now, we would like to receive both on a single sorted run invoking reduce().
 This is done by implementing a grouping comparator; a grouping comparator tells the framework when to collapse different runs (with different keys) in a single run. 
 In this specific case, we can declare the comparator of IntWritable as grouping comparator of IntAndIdWritable so elements with the same integer part will be grouped together ignoring the id.
 
@@ -458,29 +490,27 @@ The reader may actually benefit from trying to implement the Secondary Sort from
 
 \subsubsection{Generic Objects and Sequence Files}
 
-Now, consider a completely different problem of the naive implementation (Listing \ref{code:Map1Text}): we work with integers and double values and therefore using text for input/output and intermediate values is probably inefficient and lead to complex code.
+Now, consider a completely different problem of the naive implementation (Listing \ref{code:Map1Text}): we work with integers and double values and therefore using text for input/output and intermediate values is probably inefficient and leads to complex code.
 For intermediate values, Hadoop offers the possibility to use any type under the constrains that it should implement the WritableComparable interface.
 Hadoop also offers the possibility to use as Input and Output of a map reduce job serialized data (binary data). 
 This is done via the SequenceFile record reader and writer.
 This mechanism also produces a more readable and efficient code since key value pairs are stored as objects, instead of Text, without need for conversion. 
-In our case, the input key will corresponds to the column index of either the matrix or the vector.
-Similarly to what presented in Listing \ref{code:Map1Text} we can distinguish vector or matrix element from the filename.
+In our case, the input key will correspond to the column index of either the matrix or the vector.
+Similarly to what presented in Listing \ref{code:Map1Text}, we can distinguish vector or matrix element from the filename.
 
-However we have the problem that values read from the input and emitted from mappers can either be a sparse element (value and coordinates) or a double value (a single vector element).
+However, we have the problem that values read from the input and emitted from mappers can either be a sparse element (value and coordinates) or a double value (a single vector element).
 Consider that it is not possible to exploit polymorphism; every object read or written by mappers and reducers must have the same \textbf{exact} type as specified in its type declaration\footnote{Consider a $Mapper<IntWritable,DoubleWritable,IntWritable,DoubleWritable>$. It should be possible to read an IntAndIdWritable (which inherit from IntWritable) as a key. Similarly it should be possible to write an IntAndIdWritable as an output key. However the framework does not permit such operations.}.
-Even if this breaks the Liskov substitution principle (which can be quite shocking for some of the readers of this report ), it is done for greater good.
-In fact, in order to use polymorphism every serialized element should contain a serialized id of its class increasing the amount of data transferred.
+Even if this breaks the Liskov substitution principle (which can be quite shocking for some of the readers of this report ), it is done in order to ensure better performance.
+In fact, in order to use polymorphism, every serialized element should contain a serialized id of its class increasing the amount of data transferred.
 This is done in the implementation of ObjectOutputStream in Java and it greatly increases the dimension of serialized data.
 Consider that in most cases, we do not want to serialize every possible type of object, but only a small set of different types.
 The framework has a specific solution to solve this problem: the GenericWritable Interface. 
 It provides the developer with a writable wrapper for different types of objects with a minimum overhead for serialization.
 
 In conclusion, Secondary Sort, Sequence Files and GenericWritable elements are used in order to ensure maximum performance and produce a concise and maintainable code.
-The final implementation is the following:
-
-%\javalisting{HPhase1}{First phase of matrix vector multiplication (Figure \ref{fig:Map1}).}
+The final implementation is presented in Listing (\ref{code:Hphase1}):
  
-Notice how object are reused in order to reduce the overhead of garbage collection, this overhead might be significant for very large computations (especially if jvm reuse is enabled).
+Notice how objects are reused in order to reduce the overhead of garbage collection and this overhead might be significant for very large computations (especially if jvm reuse is enabled).
 
 The final implementation of the phase 1 has the following structure:
 
@@ -526,7 +556,7 @@ The computation is composed by:
           Emit $\langle j, x_j \rangle$ where $ x_j = \sum_{i \in \mathbb{O}^j} A_{i,j}  w_{i}^{T} $ as a $<$IntWritable , GenericElement$>$ pair.
 \end{itemize}
 This phase can greatly benefit from a combiner (in fact we implemented an ad hoc combiner for this phase).
-We could have used the Reducer as a combiner but notice that the Reducer has to change the type of values from NMFVector to GenericElement, this is necessary since matrix X is used as input of phase 5.
+We could have used the Reducer as a combiner but notice that the Reducer has to change the type of values from NMFVector, to GenericElement, since matrix X is used as input of phase 5.
 \commento{link ai risultati}
 
 \begin{center}
@@ -549,7 +579,7 @@ Therefore, this operation can be computed efficiently with just one step of Map 
 
          \item MAP: Read from Input pairs of type $<$IntWritable,NMFVector$>$ containing $\langle i, w_i \rangle$ and emit pairs of type $<$NullWritable,NMFMatrix$>$ containing  $\langle -,w_i^T w_i \rangle$.
 
-          \item REDUCE: Since NullWritable is used in the Map Phase a single Reducer will be instantiated. It will receive a single run of values of type NMFMatrix to be summed ($\langle 0,\{w_i^T w_i\}_{i=1}^{m} \rangle $). It will emit the final result $\sum_{i=1}^{m} w_i^T w_i$ as a pair $<$NullWritable,NMFMatrix$>$.
+          \item REDUCE: Since NullWritable is used in the Map Phase, a single Reducer will be instantiated. It will receive a single run of values of type NMFMatrix to be summed ($\langle 0,\{w_i^T w_i\}_{i=1}^{m} \rangle $). It will emit the final result $\sum_{i=1}^{m} w_i^T w_i$ as a pair $<$NullWritable,NMFMatrix$>$.
 
        \end{itemize}
 Notice how we used NullWritable both to reduce communications (we could have used a dummy key) and to send all intermediate values to a single reducer.
@@ -561,21 +591,21 @@ The Reducer will receive partial sums of the set of matrices $\langle 0,\{w_i^T 
 \subsection{Phase 4}
 \label{sec:phase4}
 
-This phase is another matrix matrix multiplication; also in this case we can implement it efficiently, just using a Map phase.
+This phase is another matrix multiplication; also in this case we can implement it efficiently just using a Map phase.
 This is possible since the matrix C produced in the previous step is very small.
-Therefore every node can access it and store it in local memory very efficiently.
+Therefore, every node can access it and store it in local memory very efficiently.
 
 \begin{itemize}
 
-         \item MAP: In the setup phase it store in a local buffer the Matrix C.
-         			Then, it read from input the pairs $ \langle j, h_j \rangle$ of type $<$IntWritable, NMFVector $>$ and produce $ \langle j, y_j = C*h_j \rangle$.
+         \item MAP: In the setup phase, it stores in a local buffer the Matrix C.
+         			Then, it reads from input the pairs $ \langle j, h_j \rangle$ of type $<$IntWritable, NMFVector $>$ and produce $ \langle j, y_j = C*h_j \rangle$.
 
 \end{itemize}
 
 Notice that the matrix C cannot be passed as a standard input of Hadoop.
 Instead, the file must be read directly from the Distributed File System by every mapper during the setup phase. 
-In our project, we assumed that the user provides through the command line of the fourth phase the the path where the C matrix is stored. 
-Through the \CLASS{FileSystem} class is possible to access the desired file while the file content can be read using an instance of \CLASS{SequenceReader}.
+In our project, we assumed that the user provides, through the command line the path where the C matrix is stored. 
+Using the \CLASS{FileSystem} class, it is possible to access the desired file while the file content can be read using an instance of \CLASS{SequenceReader}.
 
 \subsection{Phase 5}
 \label{sec:phase5}
@@ -583,7 +613,7 @@ Through the \CLASS{FileSystem} class is possible to access the desired file whil
 Phase 5 performs the following operation:
 $$ H = H.*X./Y$$
 This is a \textbf{pointwise} operation so it could be performed in a single Map Reduce step very efficiently.
-In fact, every column of $H_new$ could be computed independently of the other.
+In fact, every column of $H_{new}$ could be computed independently of the other.
 \begin{itemize}
 
          \item MAP: Read vectors of data from either matrix H,X or Y as pairs of type $<$IntWritable , GenericElement$>$.
@@ -601,18 +631,18 @@ Notice that we used secondary sort in order to receive vectors from X,H and Y in
 \label{sec:Wphase}
 
 There are few differences between update of the H and the W matrix.
-In fact, only phase 1 and 4 contains small modifications in the code with respect to the update of the H matrix.
+In fact, only phase 1 and 4 contain small modifications in the code with respect to the update of the H matrix.
 These are the differences:
 \begin{enumerate}
 \item Phase 1: Matrix W and H are stored as $<row, (column,value)>$. 
 The Mapper has to invert the order between row and column index producing $<(column,id),(row,value)>$.
 \item Phase 4: The matrix C is read during the setup phase as in \ref{sec:phase4}. 
 However, we have to perform $W*C$ instead of $C*Y$.
-Therefore a \textbf{left} matrix vector multiplication method is used.
+Therefore, a \textbf{left} matrix vector multiplication method is used.
 \end{enumerate}
 
 We could have collapsed these small differences between the W and H matrix update.
-However, we wanted to maintain code as simple (and faster) as possible even if it lead to some duplication of code.
+However, we wanted to maintain code as simple (and fast) as possible even if it leads to some duplication of code.
 
 \include{Result}
 
@@ -621,6 +651,17 @@ However, we wanted to maintain code as simple (and faster) as possible even if i
 
 
 \nocite{*}
+\appendix
+\section*{Listings}
+\label{sec:listings}
+
+\javalisting{Map1Text}{Code of the first Map Reduce phase implemented using Text. We assume that the vector is saved on multiple files stored in a folder with the filename starting with V. Similarly for the matrix A. }
+
+\pagebreak
+
+\javalisting{IntAndIdWritable}{IntAndIdWritable class. This class implements both methods from the Writable and the Comparable interface. We omitted constructors and getter/setter methods for clarity.}
+
+\javalisting{HPhase1}{First phase of matrix vector multiplication (Figure \ref{fig:Map1}).}
 
 \bibliographystyle{plain}
 
