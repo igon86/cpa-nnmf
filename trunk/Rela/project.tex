@@ -10,6 +10,7 @@
 \usepackage{fancyhdr}
 \usepackage{color}
 \usepackage{url}
+\usepackage{numprint}
 \usepackage{placeins}
 %o questo?
 \usepackage{natbib}
@@ -111,10 +112,10 @@ The final results and the outlines for future work are presented in Section \ref
 \label{nmf}
 
 Non Negative Matrix Factorization algorithms (NMF) are a group of numerical algorithms for matrix factorization.
-A matrix A is factorized by a NMF algorithm in two matrix W and H. 
-The matrix A's elements must be non negative (greater or equal by 0) by assumption. 
+A matrix A is factorized in two matrix W and H by a NMF algorithm . 
+We first assume that the matrix A's elements are non negative (greater or equal by 0). 
 The factorization has the property of $ A \simeq W H $ and both matrices W and H are non negative. 
-This factorization is in general not unique, and in fact, let's assume that $W_1$ and $H_1$ are a factorization of the matrix A.
+This factorization is in general not unique, and in fact, let's assume that $W_1$ and $H_1$ are factors of the matrix A.
 It's possible to find another factorization using a generic matrix $L$ and its inverse: $A \simeq W_1 H_1 = ( W L ) (L^{-1} H) = W_2 H_2  $. 
 
 The non negative matrix factorization problem can be formulated as follows:
@@ -376,14 +377,14 @@ Therefore, we did not use \textit{ArrayWritable}, but defined our own datatype.
 The length of vectors is stored as a static attribute of the NMFVector class and initialized in every mapper and reducer using a context variable.
 The context variable is initialized in the main of every phase.
 
-These classes can be used in intermediate key and value pairs, however we would like that each phase used our datatypes as input and output elements.
+These classes can be used as intermediate keys or values; however, we want that each phase uses our datatypes as input and output elements.
 This is possible using \textbf{Sequence Files.}
 
 \paragraph{Sequence Files}
 
 Hadoop also offers the possibility to use as Input and Output of a map reduce job serialized data (binary data). 
 This is done via the SequenceFile record reader and writer.
-This mechanism also produces a more readable and efficient code since key value pairs are stored as objects, instead of Text, without need for conversion. 
+This mechanism also produces a more readable and efficient code since the key value pairs are stored as objects, instead of Text, which eliminates the need for conversion.
 Different tools (written as of Map/Reduce programs) for converting the data from text to binary and vice-versa were also implemented.
 
 \paragraph{Data Flow}
@@ -435,7 +436,7 @@ It also has to emit data structured differently in the two cases.
 
 \FloatBarrier
 The first two concerns are functional, in fact it is necessary to distinguish elements from A and W, otherwise the computation will be incorrect.
-So let's consider a preliminary straightforward implementation.
+First we consider a preliminary straightforward implementation (Listing \ref{code:Map1Text}).
 
 We solved the problem of distinguishing between A and W in the mapper using the filename of the chunk. 
 Similarly, we solved the problem in the reducer by adding an annotation in the intermediate values. 
@@ -509,7 +510,7 @@ The framework has a specific solution to solve this problem: the GenericWritable
 It provides the developer with a writable wrapper for different types of objects with a minimum overhead for serialization.
 
 In conclusion, Secondary Sort, Sequence Files and GenericWritable elements are used in order to ensure maximum performance and produce a concise and maintainable code.
-The final implementation is presented in Listing (\ref{code:Hphase1}):
+The final implementation is presented in Listing (\ref{code:HPhase1}):
  
 Notice how objects are reused in order to reduce the overhead of garbage collection and this overhead might be significant for very large computations (especially if jvm reuse is enabled).
 
@@ -558,7 +559,7 @@ The computation is composed by:
 \end{itemize}
 This phase can greatly benefit from a combiner (in fact we implemented an ad hoc combiner for this phase).
 We could have used the Reducer as a combiner but notice that the Reducer has to change the type of values from NMFVector, to GenericElement, since matrix X is used as input of phase 5.
-\commento{link ai risultati}
+Performance gain relative to the combiner is shown in Table \ref{comb_table}.
 
 \begin{center}
 	\begin{figure}[h]
@@ -587,7 +588,7 @@ Notice how we used NullWritable both to reduce communications (we could have use
 It could seem that this phase could be a bottleneck for the whole application since the reduce phase is performed sequentially on a single node.
 However, by using combiners, we can solve this problem.
 The Reducer will receive partial sums of the set of matrices $\langle 0,\{w_i^T w_i\}_{i=1}^{m} \rangle $.
-\commento{link ai risultati e al numero di record risparmiati}
+A comparison of the number of records with or without combiner is shown in Table \ref{comb_table}.
 
 \subsection{Phase 4}
 \label{sec:phase4}
@@ -650,6 +651,7 @@ However, we wanted to maintain code as simple (and fast) as possible even if it 
 \section{Conclusion}
 \label{conclusion}
 
+To compare the results shown in the article \cite{liu2010}, we test our implementation for all reported cases in the article.
 
 \nocite{*}
 \appendix

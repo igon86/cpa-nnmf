@@ -12,6 +12,10 @@ Michael~W. Berry, Murray Browne, Amy~N. Langville, V.~Paul Pauca, and Robert~J.
 \newblock In {\em Computational Statistics and Data Analysis}, volume Volume
   52, pages 155--173, 2006.
 
+\bibitem{numeroReducer}
+Hadoop Documentation.
+\newblock Map reduce tutorial.
+
 \bibitem{least}
 H.~Kim and H.~Park.
 \newblock Nonnegative matrix factorization based on alternating nonnegativity
