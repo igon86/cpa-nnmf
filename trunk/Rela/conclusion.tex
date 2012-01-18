@@ -1,9 +1,40 @@
 \section{Conclusions and Future Work}
 \label{conclusion}
 %%%%L'implementazione dell'algoritmo riportato nel paper ha dato esiti posivi. I test fatti hanno mostrato come il comportamento delle due implementazioni sia simile pur essendo il cluster  meno potente. I risultati avuti dai test di scalabilit`a su grado di parellelismo, hanno,  pero',   mostrato come l'algoritmo non risca a scalare in maniera ottimale dopo il grado di parallelismo 8. Questo fatto non e' stato complementamente mensionato nel paper. Questo fatto porta in luce un grosso problema dell'algoritmo: la scalabilita' con alti numeri di worker. Sembra che in letteratura non sia stato riportato questo fatto pero' altre algoritmi implementati in Hadoop hanno mostrato facciano scalare l'algoritmo fino a 32 nodi. 
+%
+%
+%The implementation of the algorithm reported in the paper gave positive results. 
+%
+%The scalability test have shown, that the algorithm does not seem to scale optimally with a parallel degree greater than 8. This is not completely state in the paper. 
+%This fact brings to light a big problem of the algorithm: the scalability with large numbers of workers. 
+%It seems that the problem has not been reported in the literature but a descent gradient algorithm implemented in Hadoop \cite{IBM_NMF} has shown as the NMF can scale up to 32 nodes.
+%
+%
+%Implementing an algorithm in Hadoop framework is relative simple and can be develop in short time, once the framework has been mastered. The learning time of the Hadoop framework is very long to implement the algoritm in an efficent manner.
 
+We compared our results with the results presented in \cite{liu2010}.
+We have very good results of scalability with respect of the data size (Graph \ref{DeltaVar}), but only sub optimal results of scalability with respect of the number of nodes (Graph \ref{NScal}).
+The tests show that the behavior of our implementation and the one presented in \citep{liu2010} is similar, although we used a less powerful cluster. 
+Moreover, they \textit{conveniently} tested the application on a cluster with only 8 nodes which is quite strange for a paper published in 2010.
+This poses some doubts on the scalability of the multiplicative update algorithm.
+Moreover, we found in literature an implementation in Hadoop of the descent gradient algorithm\cite{IBM_NMF} which can scale up to 32 nodes.
+A possible future work is the implementation of the Least square algorithm with sparseness constrains.
+This algorithm should produce the most accurate results and we could not find an example of a map reduce implementation in literature.
 
-The implementation of the algorithm reported in the paper gave positive results. The tests made have shown that the behavior of the two implementations is similar although the used cluster is less powerful. The scalability results varying the parallelism degree, have shown, however, that the algorithm don't seem to scale optimally with a parallel degree greater than 8. This is not completely state in the paper. This fact brings to light a big problem of the algorithm: the scalability with large numbers of workers. It seems that the problem has not been reported in the literature but a descent gradient algorithm implemented in Hadoop \cite{IBM_NMF} has shown as the NMF can scale up to 32 nodes.
+We would like to spend a few words on the Hadoop framework.
+We believe that its biggest strength is the fact that allows the programmer to work with big data very simply.
+The programmer is relieved from all the problems correlated with the distribution and fetching of gigabytes of data during a computation.
+Considered that we had problems with the \textbf{generation} of the matrices, due to their size.
+Implementing the algorithm for the multiplicative update with a standard framework for parallel programming (such as MPI) would have been quite problematic.
+However the framework has some flaws:
+\begin{enumerate}
+\item It is easy to program using Hadoop once the framework has been mastered. 
+However, the learning curve is very steep. 
+We had to modify our implementation many times as we discovered new features and design patterns.
+\item The fact that Hadoop is based on top of Java may confuse the programmer instead of making him feel at home. 
+Most notably, the fact that polymorphism and generic types can not be used puzzled us for a solid week.
+The framework circumvents these limitations by using complex design patterns and specialized classes such as GenericWritables or ArrayWritable.
+\item The framework is relatively young, so it is lacking good documentation (together with the fact that there are many changes from one version to another).
+\item It has a gigantic number of configuration parameters and not even a hint of auto - tuning mechanisms, which is quite disappointing for a framework intended to work on a heterogeneous network of machines.
+\end{enumerate}
 
-
-Implementing an algorithm in Hadoop framework is relative simple and can be develop in short time, once the framework has been mastered. The learning time of the Hadoop framework is very long to implement the algoritm in an efficent manner.
