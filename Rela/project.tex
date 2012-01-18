@@ -604,7 +604,7 @@ Therefore, every node can access it and store it in local memory very efficientl
 
 \end{itemize}
 
-Notice that the matrix C cannot be passed as a standard input of Hadoop.
+Notice that the matrix C cannot be passed as a standard map input of Hadoop.
 Instead, the file must be read directly from the Distributed File System by every mapper during the setup phase. 
 In our project, we assumed that the user provides, through the command line the path where the C matrix is stored. 
 Using the \CLASS{FileSystem} class, it is possible to access the desired file while the file content can be read using an instance of \CLASS{SequenceReader}.
