@@ -1,5 +1,5 @@
 \section{Results}
-\label{results}
+\label{sec:results}
 
  All the tests were executed on Pianosa\footnote{Pianosa web site: \url{http://pianosa.di.unipi.it/Home_pianosa/html/info.html}}, one of the cluster of the Computer Science Department in Pisa. The cluster is composed by 24 homogeneous nodes. The nodes are 800 Mz Pentium III with 1GB of main memory and they are connected through a Fast Ethernet interconnection network. The Operating system is Fedora Core 1. On that cluster, we installed the Apache Hadoop 0.20.2 framework. The configuration parameters are set to default, so, the maximum number of task per node is set to 2 and the number of replication is set to 3. 
 We decided to place the Secondary NameNode and the JobTracker in cluster interface node.
@@ -74,17 +74,6 @@ The first graph shows completion time while the second one on the scalability.
 
 As we can see from Figure \ref{NScal}, the algorithm does not have ideal scalability in Hadoop.
 By analyzing the different phases (Table \ref{tab:differentPhases}) we can see that Phase 3 have limited scalability while phase 4 and 5 have no scalability at all.
-This might sound strange as phase 3, 4 and 5 are phases which are embarrassingly parallel.
-However, their computational grain is very small.
-Phase 3 performs a matrix multiplication of the narrow matrix W (for matrix H update) with itself; an operation of much smaller grain compared to the matrix vector multiplication performed in Phase 1 and 2. 
-Similarly, phase 4 and 5 performs operations on a small set of data.
-In fact, phase 1 and 2 dominate in the completion time; phase 3, 4 and 5 combined contribute for less than 20\%.
-Consider that Hadoop is not suitable to perform computations of small grain.
-As an example, in phase 5, (in which point-wise multiplication and division are performed on narrow matrices X,Y and H)  the shuffle phase takes most of the completion time (Table \ref{tab:Phase 5}). 
-In the test with a parallelism degree equals to 16, a shuffle task lasts in average 29 seconds, while map and reduce tasks takes 8 and 3 seconds respectively. 
-This scenario is further compromise, taking in account that the completion time is given by the sequentialization of 5 different parallel phases. %The below table show the percentage that every phase in the computation takes varying the parallel degree.
-The table reported below shows the average completion time for each phase varying the parallel degree.
-
 \begin{table}[h!]
 \begin{center}
 \begin{tabular}{ | l || c | c | c | c |  c | c | }
@@ -102,9 +91,21 @@ The table reported below shows the average completion time for each phase varyin
 
 \end{tabular} 
   \end{center}
+  \caption{Completion time of the five Phases with different parallelism degree.}
     \label{tab:differentPhases}
-\caption{Completion time of the five Phases with different parallelism degree.}
 \end{table}
+This might sound strange as phase 3, 4 and 5 are phases which are embarrassingly parallel.
+However, their computational grain is very small.
+Phase 3 performs a matrix multiplication of the narrow matrix W (for matrix H update) with itself; an operation of much smaller grain compared to the matrix vector multiplication performed in Phase 1 and 2. 
+Similarly, phase 4 and 5 performs operations on a small set of data.
+In fact, phase 1 and 2 dominate in the completion time; phase 3, 4 and 5 combined contribute for less than 20\%.
+Consider that Hadoop is not suitable to perform computations of small grain.
+As an example, in phase 5, (in which point-wise multiplication and division are performed on narrow matrices X,Y and H)  the shuffle phase takes most of the completion time (Table \ref{tab:Phase 5}). 
+Moreover, the amount of time taken by the shuffle phase is almost unaffected by the variation of parallelism degree while the reduce phase (where multiplication is performed), although of very small grain, shows almost ideal scalability.
+ 
+The table reported below shows the average completion time for each phase varying the parallel degree.
+
+
 
 \begin{table}[h!]
 \begin{center}
@@ -128,8 +129,8 @@ The table reported below shows the average completion time for each phase varyin
 
 \end{tabular} 
   \end{center}
+  \caption{Completion time Phase 5 with respect to different parallelism degree.}
     \label{tab:Phase 5}
-\caption{Completion time Phase 5 with respect to different parallelism degree.}
 \end{table}
 
 
@@ -150,7 +151,11 @@ The table reported below shows the average completion time for each phase varyin
 %\end{tabular}
 %\end{center}
 
-Furthermore, we make additional test to verify that the assumption done during the project were verified. The first one regards the coding of the data in sequential file during the ``internal phases''. The data shown in the below table show the completion time in the case the data are represented in the sequential or textual way. We can observe that coding the data provide a lot of benefits in the completion time, especially for the phase 1 and 2.
+Furthermore, we performed some additional tests in order to verify some of the assumptions that guided our implementation design. 
+The first one regards Sequence Files.
+We already explained in Section \ref{sec:implementation} why we used Sequence Files. 
+Table \ref{tab:textvsSeq} show the completion time in the case that data is encoded as binary (Sequence Files) or Text. 
+We can observe that we were correct and keeping data encoded it is beneficial for the application performance, especially for the phase 1 and 2.
 
 \begin{table}
 \begin{center}
@@ -170,8 +175,8 @@ Furthermore, we make additional test to verify that the assumption done during t
 \caption{Comparison of completion time of the five phases of the application using Text and Sequence Files. }
 \end{table}
 
-
-The second additional test regards the combiner improvement in the completion time. The test are done taking in account the following parameters: A contains 16000000 elements, k is set to 25 and the parallel degree is 8. The below table show the result obtained by the test.
+Moreover we The second additional test regards the combiner improvement in the completion time. 
+The test are done taking in account the following parameters: A contains \numprint{16000000} elements, k is set to 25 and the parallel degree is 8. The below table show the result obtained by the test.
 
 \begin{table}[h!]
 \begin{center}
