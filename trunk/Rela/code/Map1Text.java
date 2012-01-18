@@ -2,14 +2,14 @@ public class Phase1 {
 
     public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
 
-        private static boolean V = false;
+        private static boolean W = false;
         private static int currentRow = 0;
 
         @Override
         protected void setup(Context context) throws IOException {
             String chunkName = ((FileSplit) context.getInputSplit()).getPath().getName();
-            if (chunkName.startsWith("V")) {
-                V = true;
+            if (chunkName.startsWith("W")) {
+                W = true;
             } else if (!chunkName.startsWith("A")) {
                 throw new IOException("File name not correct");
             }
@@ -35,7 +35,7 @@ public class Phase1 {
         public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             ArrayList<Text> matrixValues = new ArrayList<Text>();
             Text val;
-            double vectorValue = 0, outputValue;
+            NMFVector vectorValue = 0, outputValue;
 
             Iterator<Text> iter = values.iterator();
 
@@ -44,7 +44,7 @@ public class Phase1 {
                 if (val.charAt(0) == 'a') {
                     matrixValues.add(val);
                 } else {
-                    vectorValue = Double.parseDouble(val.toString().substring(1));
+                    vectorValue = NMFVector.parseLine(val.toString().substring(1));
                 }
             }
             /* elements are emitted by scanning the list of received elements from the matrix */
@@ -52,8 +52,8 @@ public class Phase1 {
             while (iter.hasNext()) {
                 val = iter.next();
                 String[] rowValue = val.toString().split("%");
-                outputValue = vectorValue * Double.parseDouble(rowValue[1]);
-                context.write(new IntWritable(Integer.parseInt(rowValue[0])), new Text("" + outputValue));
+                outputValue = vectorValue.multiply(Double.parseDouble(rowValue[1]));
+                context.write(new IntWritable(Integer.parseInt(rowValue[0])), new Text("" + outputValue.toString));
             }
         }
     }

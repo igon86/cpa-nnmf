@@ -103,10 +103,6 @@ Consider that Hadoop is not suitable to perform computations of small grain.
 As an example, in phase 5, (in which point-wise multiplication and division are performed on narrow matrices X,Y and H)  the shuffle phase takes most of the completion time (Table \ref{tab:Phase 5}). 
 Moreover, the amount of time taken by the shuffle phase is almost unaffected by the variation of parallelism degree while the reduce phase (where multiplication is performed), although of very small grain, shows almost ideal scalability.
  
-The table reported below shows the average completion time for each phase varying the parallel degree.
-
-
-
 \begin{table}[h!]
 \begin{center}
 \begin{tabular}{ | l || c | c | c | c |  c | c | }
@@ -175,8 +171,9 @@ We can observe that we were correct and keeping data encoded it is beneficial fo
 \caption{Comparison of completion time of the five phases of the application using Text and Sequence Files. }
 \end{table}
 
-Moreover we The second additional test regards the combiner improvement in the completion time. 
-The test are done taking in account the following parameters: A contains \numprint{16000000} elements, k is set to 25 and the parallel degree is 8. The below table show the result obtained by the test.
+Moreover we wanted to check how the combiner affects performances. 
+The test is performed with A containing \numprint{16000000} elements, k is set to 25 and the parallel degree is 8.
+Results are shown in Table \ref{comb_table}.
 
 \begin{table}[h!]
 \begin{center}

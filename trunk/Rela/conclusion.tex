@@ -1,12 +1,14 @@
 \section{Conclusions and Future Work}
 \label{conclusion}
-L'implementazione dell'algoritmo riportato nel paper ha dato esiti posivi. I test fatti hanno mostrato come il comportamento delle due implementazioni sia simile pur essendo il cluster  meno potente. I risultati avuti dai test di scalabilit`a su grado di parellelismo, hanno,  pero',   mostrato come l'algoritmo non risca a scalare in maniera ottimale dopo il grado di parallelismo 8. Questo fatto non e' stato complementamente mensionato nel paper. Questo fatto porta in luce un grosso problema dell'algoritmo: la scalabilita' con alti numeri di worker. Sembra che in letteratura non sia stato riportato questo fatto pero' altre algoritmi implementati in Hadoop hanno mostrato facciano scalare l'algoritmo fino a 32 nodi. 
+%L'implementazione dell'algoritmo riportato nel paper ha dato esiti posivi. I test fatti hanno mostrato come il comportamento delle due implementazioni sia simile pur essendo il cluster  meno potente. I risultati avuti dai test di scalabilit`a su grado di parellelismo, hanno,  pero',   mostrato come l'algoritmo non risca a scalare in maniera ottimale dopo il grado di parallelismo 8. Questo fatto non e' stato complementamente mensionato nel paper. Questo fatto porta in luce un grosso problema dell'algoritmo: la scalabilita' con alti numeri di worker. Sembra che in letteratura non sia stato riportato questo fatto pero' altre algoritmi implementati in Hadoop hanno mostrato facciano scalare l'algoritmo fino a 32 nodi. 
+%
+%
+%
+%
+%
+%The implementation of the algorithm reported in the paper gave positive results. The tests made have shown that the behavior of the two implementations is similar although the used cluster is less powerful. The scalability results varying the parallelism degree, have shown, however, that the algorithm don't seem to scale optimally with a parallel degree greater than 8. This is not completely state in the paper. This fact brings to light a big problem of the algorithm: the scalability with large numbers of workers. It seems that the problem has not been reported in the literature but a descent gradient algorithm implemented in Hadoop (ref) has shown as the NMF can scale up to 32 nodes.
+%
+%
+%Implementing an algorithm in Hadoop framework is relative simple and can be develop in short time, once the framework has been mastered. The learning time of the Hadoop framework is very long to implement the algoritm in an efficent manner.
 
-
-
-
-
-The implementation of the algorithm reported in the paper gave positive results. The tests made have shown that the behavior of the two implementations is similar although the used cluster is less powerful. The scalability results varying the parallelism degree, have shown, however, that the algorithm don't seem to scale optimally with a parallel degree greater than 8. This is not completely state in the paper. This fact brings to light a big problem of the algorithm: the scalability with large numbers of workers. It seems that the problem has not been reported in the literature but a descent gradient algorithm implemented in Hadoop (ref) has shown as the NMF can scale up to 32 nodes.
-
-
-Implementing an algorithm in Hadoop framework is relative simple and can be develop in short time, once the framework has been mastered. The learning time of the Hadoop framework is very long to implement the algoritm in an efficent manner.
+In order to have an estimate on the goodness of our implementation
