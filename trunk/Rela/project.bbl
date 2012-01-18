@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{05abstractemail}
 Michael~W. Berry and Murray Browne.
@@ -15,6 +15,15 @@ Michael~W. Berry, Murray Browne, Amy~N. Langville, V.~Paul Pauca, and Robert~J.
 \bibitem{numeroReducer}
 Hadoop Documentation.
 \newblock Map reduce tutorial.
+\newblock
+  \url{http://hadoop.apache.org/mapreduce/docs/r0.22.0/mapred_tutorial.html}.
+
+\bibitem{IBM_NMF}
+Rainer Gemulla, Erik Nijkamp, Peter~J. Haas, and Yannis Sismanis.
+\newblock Large-scale matrix factorization with distributed stochastic gradient
+  descent.
+\newblock In {\em Proceedings of the 17th ACM SIGKDD international conference
+  on Knowledge discovery and data mining}, pages 69--77. ACM, 2011.
 
 \bibitem{least}
 H.~Kim and H.~Park.
