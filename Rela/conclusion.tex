@@ -14,27 +14,29 @@
 
 We compared our results with the results presented in \cite{liu2010}.
 We have very good results of scalability with respect of the data size (Graph \ref{DeltaVar}), but only sub optimal results of scalability with respect of the number of nodes (Graph \ref{NScal}).
-The tests show that the behavior of our implementation and the one presented in \citep{liu2010} is similar, although we used a less powerful cluster. 
+The tests show that the behavior of our implementation is similar to what presented in \citep{liu2010}, although we used a less powerful cluster.
 Moreover, they \textit{conveniently} tested the application on a cluster with only 8 nodes which is quite strange for a paper published in 2010.
 This poses some doubts on the scalability of the multiplicative update algorithm.
 Moreover, we found in literature an implementation in Hadoop of the descent gradient algorithm\cite{IBM_NMF} which can scale up to 32 nodes.
 A possible future work is the implementation of the Least square algorithm with sparseness constrains.
 This algorithm should produce the most accurate results and we could not find an example of a map reduce implementation in literature.
 
-We would like to spend a few words on the Hadoop framework.
-We believe that its biggest strength is the fact that allows the programmer to work with big data very simply.
+We would like to say a few words on the Hadoop framework.
+We believe that its biggest strength is that it allows the programmer to work with big amounts of data very easily.
 The programmer is relieved from all the problems correlated with the distribution and fetching of gigabytes of data during a computation.
-Considered that we had problems with the \textbf{generation} of the matrices, due to their size.
-Implementing the algorithm for the multiplicative update with a standard framework for parallel programming (such as MPI) would have been quite problematic.
-However the framework has some flaws:
+Consider that we had problems with the \textbf{generation} of the matrices, due to their size.
+Therefore, implementing the algorithm for the multiplicative update with a standard framework for parallel programming (such as MPI) would have been quite problematic.
+However, the framework has some flaws:
 \begin{enumerate}
-\item It is easy to program using Hadoop once the framework has been mastered. 
+\item It is easy to program using Hadoop once the framework has been fully understood. 
 However, the learning curve is very steep. 
 We had to modify our implementation many times as we discovered new features and design patterns.
-\item The fact that Hadoop is based on top of Java may confuse the programmer instead of making him feel at home. 
+\item The fact that Hadoop is based on top of Java may confuse the programmer instead of helping. 
 Most notably, the fact that polymorphism and generic types can not be used puzzled us for a solid week.
 The framework circumvents these limitations by using complex design patterns and specialized classes such as GenericWritables or ArrayWritable.
 \item The framework is relatively young, so it is lacking good documentation (together with the fact that there are many changes from one version to another).
 \item It has a gigantic number of configuration parameters and not even a hint of auto - tuning mechanisms, which is quite disappointing for a framework intended to work on a heterogeneous network of machines.
 \end{enumerate}
 
+Nonetheless we believe that the framework is very good for its main purpose, which is data mining for terabytes of data.
+Once we understood some advanced mechanisms, coding became quite easy which is another big plus for Hadoop.
